@@ -7,7 +7,7 @@ let project = Project(
             name: "Clue",
             destinations: .iOS,
             product: .app,
-            bundleId: "io.tuist.Clue",
+            bundleId: "com.krwd.Clue",
             infoPlist: .extendingDefault(
                 with: [
                     "UILaunchScreen": [
@@ -18,13 +18,15 @@ let project = Project(
             ),
             sources: ["Clue/Sources/**"],
             resources: ["Clue/Resources/**"],
-            dependencies: []
+            dependencies: [
+                .external(name: "Supabase")
+            ]
         ),
         .target(
             name: "ClueTests",
             destinations: .iOS,
             product: .unitTests,
-            bundleId: "io.tuist.ClueTests",
+            bundleId: "com.krwd.ClueTests",
             infoPlist: .default,
             sources: ["Clue/Tests/**"],
             resources: [],
