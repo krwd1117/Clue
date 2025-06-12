@@ -169,12 +169,19 @@ class CharacterGenerationService: ObservableObject {
             }
             
             print("✅ Character data received: \(edgeResponse.character.name)")
+            
+            // 메타데이터 추출
+            let modelUsed = edgeResponse.metadata?.model ?? "gpt-4o-mini"
+            let tokensUsed = edgeResponse.metadata?.usage?.totalTokens
+            
             return GeneratedCharacter(
                 name: edgeResponse.character.name,
                 age: edgeResponse.character.age,
                 appearance: edgeResponse.character.appearance,
                 backstory: edgeResponse.character.backstory,
-                conflict: edgeResponse.character.conflict
+                conflict: edgeResponse.character.conflict,
+                modelUsed: modelUsed,
+                tokensUsed: tokensUsed
             )
             
         } catch let decodingError as DecodingError {

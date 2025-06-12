@@ -21,7 +21,7 @@ let project = Project(
             name: "Clue",
             destinations: .iOS,
             product: .app,
-            bundleId: "com.krwd.Clue",
+            bundleId: "com.krwd.clue",
             deploymentTargets: .iOS("17.0"),
             infoPlist: .extendingDefault(
                 with: [
@@ -31,9 +31,15 @@ let project = Project(
                     ],
                     "CFBundleURLTypes": [
                         [
-                            "CFBundleURLName": "com.krwd.Clue",
+                            "CFBundleURLName": "com.krwd.clue",
                             "CFBundleURLSchemes": [
                                 "clue"
+                            ]
+                        ],
+                        [
+                            "CFBundleURLName": "com.krwd.clue.web",
+                            "CFBundleURLSchemes": [
+                                "com.krwd.clue.web"
                             ]
                         ]
                     ]
@@ -48,7 +54,7 @@ let project = Project(
                 base: [
                     "DEVELOPMENT_TEAM": "$(DEVELOPMENT_TEAM)",
                     "CODE_SIGN_STYLE": "Automatic",
-                    "PRODUCT_BUNDLE_IDENTIFIER": "com.krwd.Clue"
+                    "PRODUCT_BUNDLE_IDENTIFIER": "com.krwd.clue"
                 ],
                 configurations: [
                     .debug(
@@ -70,7 +76,7 @@ let project = Project(
             name: "ClueTests",
             destinations: .iOS,
             product: .unitTests,
-            bundleId: "com.krwd.ClueTests",
+            bundleId: "com.krwd.clueTests",
             deploymentTargets: .iOS("17.0"),
             infoPlist: .default,
             sources: ["Clue/Tests/**"],

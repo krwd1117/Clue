@@ -144,8 +144,8 @@ class AuthService: ObservableObject {
         print("🔗 Handling OAuth callback: \(url)")
         print("🔗 URL Query Items: \(url.query ?? "none")")
         
-        // URL이 올바른 scheme인지 확인
-        guard url.scheme == "clue" else {
+        // URL 유효성 검증 (향상된 검증)
+        guard SupabaseConfig.validateURLScheme(url) else {
             print("❌ Invalid URL scheme: \(url.scheme ?? "none")")
             return
         }

@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - 생성된 캐릭터 모델
 struct GeneratedCharacter: Identifiable, Codable, Hashable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let age: String
     let appearance: String
@@ -17,13 +17,72 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
     let conflict: String
     let createdAt: Date
     
-    init(name: String, age: String, appearance: String, backstory: String, conflict: String) {
+    // 메타데이터 (선택사항)
+    let modelUsed: String?
+    let tokensUsed: Int?
+    // generationSettings는 추후 필요시 추가
+    
+    init(name: String, age: String, appearance: String, backstory: String, conflict: String, 
+         modelUsed: String? = nil, tokensUsed: Int? = nil) {
+        self.id = UUID()
         self.name = name
         self.age = age
         self.appearance = appearance
         self.backstory = backstory
         self.conflict = conflict
         self.createdAt = Date()
+        self.modelUsed = modelUsed
+        self.tokensUsed = tokensUsed
+    }
+    
+    // 데이터베이스에서 로드할 때 사용하는 초기화
+    init(id: UUID, name: String, age: String, appearance: String, backstory: String, conflict: String,
+         createdAt: Date, modelUsed: String? = nil, tokensUsed: Int? = nil) {
+        self.id = id
+        self.name = name
+        self.age = age
+        self.appearance = appearance
+        self.backstory = backstory
+        self.conflict = conflict
+        self.createdAt = createdAt
+        self.modelUsed = modelUsed
+        self.tokensUsed = tokensUsed
+    }
+    
+    // MARK: - Codable Implementation
+    enum CodingKeys: String, CodingKey {
+        case id, name, age, appearance, backstory, conflict
+        case createdAt = "created_at"
+        case modelUsed = "model_used"
+        case tokensUsed = "tokens_used"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        age = try container.decode(String.self, forKey: .age)
+        appearance = try container.decode(String.self, forKey: .appearance)
+        backstory = try container.decode(String.self, forKey: .backstory)
+        conflict = try container.decode(String.self, forKey: .conflict)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        modelUsed = try container.decodeIfPresent(String.self, forKey: .modelUsed)
+        tokensUsed = try container.decodeIfPresent(Int.self, forKey: .tokensUsed)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(age, forKey: .age)
+        try container.encode(appearance, forKey: .appearance)
+        try container.encode(backstory, forKey: .backstory)
+        try container.encode(conflict, forKey: .conflict)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(modelUsed, forKey: .modelUsed)
+        try container.encodeIfPresent(tokensUsed, forKey: .tokensUsed)
     }
 }
 

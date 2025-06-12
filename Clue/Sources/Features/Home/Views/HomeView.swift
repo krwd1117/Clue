@@ -24,17 +24,6 @@ struct HomeView: View {
                         .font(.system(size: 80))
                         .foregroundStyle(.blue)
                     
-                    VStack(spacing: 8) {
-                        Text("Clue")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        
-                        Text("창작자를 위한 캐릭터 생성 도구")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    
                     // 사용자 환영 메시지
                     if let user = authService.currentUser {
                         Text("안녕하세요, \(user.displayName ?? "창작자")님!")
@@ -126,24 +115,6 @@ struct HomeView: View {
                     }
                 }
                 
-                // 로그아웃 버튼
-                Button(action: {
-                    viewModel.signOut()
-                }) {
-                    HStack {
-                        Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("로그아웃")
-                    }
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.red.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .disabled(viewModel.isLoading)
-                .opacity(viewModel.isLoading ? 0.7 : 1.0)
-                
                 Spacer(minLength: 40)
             }
             .padding(.horizontal, 20)
@@ -156,69 +127,3 @@ struct HomeView: View {
         }
     }
 }
-
-// MARK: - 기능 카드 컴포넌트
-struct FeatureCard: View {
-    let icon: String
-    let title: String
-    let description: String
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(.blue)
-            
-            Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.primary)
-            
-            Text(description)
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(3)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 100)
-        .padding(12)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-// MARK: - 사용법 스텝 컴포넌트
-struct UsageStep: View {
-    let number: Int
-    let text: String
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Text("\(number)")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 24, height: 24)
-                .background(Color.blue)
-                .clipShape(Circle())
-            
-            Text(text)
-                .font(.body)
-                .foregroundColor(.primary)
-            
-            Spacer()
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-}
-
-#Preview {
-    NavigationView {
-        HomeView()
-            .environmentObject(AppRouter())
-            .environmentObject(NavigationRouter())
-            .environmentObject(AuthService.shared)
-    }
-} 

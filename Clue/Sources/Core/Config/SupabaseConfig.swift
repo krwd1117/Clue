@@ -10,6 +10,17 @@ struct SupabaseConfig {
     // OAuth Redirect URL
     static let redirectURL = "clue://oauth/callback"
     
+    // 디버깅을 위한 URL scheme 체크
+    static func validateURLScheme(_ url: URL) -> Bool {
+        print("🔍 Validating URL: \(url)")
+        print("🔍 URL scheme: \(url.scheme ?? "none")")
+        print("🔍 URL host: \(url.host ?? "none")")
+        print("🔍 URL path: \(url.path)")
+        print("🔍 URL query: \(url.query ?? "none")")
+        
+        return url.scheme == "clue" || url.scheme == "com.krwd.clue.web"
+    }
+    
     // 공유 Supabase 클라이언트 (싱글톤)
     static let client: SupabaseClient = {
         return SupabaseClient(

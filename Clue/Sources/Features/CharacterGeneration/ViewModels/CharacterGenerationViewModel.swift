@@ -47,6 +47,7 @@ class CharacterGenerationViewModel: ObservableObject {
     
     private let generationService = CharacterGenerationService.shared
     private let taxonomyService = TaxonomyService.shared
+    private let storageService = CharacterStorageService.shared
     private var navigationRouter: NavigationRouter?
     
     // MARK: - Setup
@@ -124,6 +125,13 @@ class CharacterGenerationViewModel: ObservableObject {
                     self.showingResult = true
                     self.isGenerating = false
                     print("✅ CharacterGenerationViewModel: Character generated successfully - \(character.name)")
+                    
+                    // 자동 저장 (선택사항)
+                    if AuthService.shared.isAuthenticated {
+                        Task {
+                            await self.autoSaveCharacter(character)
+                        }
+                    }
                 }
             } catch {
                 await MainActor.run {
@@ -260,6 +268,49 @@ class CharacterGenerationViewModel: ObservableObject {
         }
         
         return selectedId != nil && selectedId! > 0
+    }
+    
+    // MARK: - 캐릭터 저장
+    
+    /// 캐릭터 자동 저장 (백그라운드)
+    private func autoSaveCharacter(_ character: GeneratedCharacter) async {
+        do {
+            let savedCharacter = try await storageService.saveCharacter(character)
+            print("💾 Character auto-saved: \(savedCharacter.name)")
+            
+            await MainActor.run {
+                // 저장된 캐릭터로 업데이트
+                self.generatedCharacter = savedCharacter
+            }
+        } catch {
+            print("⚠️ Auto-save failed: \(error.localizedDescription)")
+            // 자동 저장 실패는 사용자에게 알리지 않음 (UX 고려)
+        }
+    }
+    
+    /// 캐릭터 수동 저장 (사용자 버튼 클릭)
+    func saveCharacter() async {
+        guard let character = generatedCharacter else { return }
+        
+        do {
+            let savedCharacter = try await storageService.saveCharacter(character)
+            print("💾 Character manually saved: \(savedCharacter.name)")
+            
+            await MainActor.run {
+                self.generatedCharacter = savedCharacter
+                // 성공 알림은 UI에서 처리
+            }
+        } catch {
+            await MainActor.run {
+                self.showError("캐릭터 저장에 실패했습니다: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    /// 현재 캐릭터가 저장되었는지 확인
+    var isCurrentCharacterSaved: Bool {
+        guard let character = generatedCharacter else { return false }
+        return storageService.isCharacterSaved(character)
     }
     
     // MARK: - Navigation

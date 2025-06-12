@@ -14,6 +14,11 @@ struct CharacterResultView: View {
     
     @State private var showingShareSheet = false
     @State private var showingCopyAlert = false
+    @State private var showingSaveAlert = false
+    @State private var isSaving = false
+    
+    @StateObject private var storageService = CharacterStorageService.shared
+    @StateObject private var authService = AuthService.shared
     
     var body: some View {
         NavigationView {
@@ -68,6 +73,35 @@ struct CharacterResultView: View {
                     
                     // 액션 버튼들
                     VStack(spacing: 12) {
+                        // 저장하기 (로그인된 경우에만 표시)
+                        if authService.isAuthenticated {
+                            Button(action: saveCharacter) {
+                                HStack {
+                                    if isSaving {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                            .scaleEffect(0.8)
+                                        Text("저장 중...")
+                                    } else if isCharacterSaved {
+                                        Image(systemName: "checkmark.circle.fill")
+                                        Text("저장됨")
+                                    } else {
+                                        Image(systemName: "heart")
+                                        Text("내 컬렉션에 저장")
+                                    }
+                                }
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    isCharacterSaved ? Color.green : Color.purple
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .disabled(isSaving || isCharacterSaved)
+                        }
+                        
                         // 복사 버튼
                         Button(action: copyCharacter) {
                             HStack {
@@ -133,9 +167,31 @@ struct CharacterResultView: View {
         } message: {
             Text("캐릭터 정보가 클립보드에 복사되었습니다.")
         }
+        .alert("저장 완료", isPresented: $showingSaveAlert) {
+            Button("확인") { }
+        } message: {
+            Text("캐릭터가 내 컬렉션에 저장되었습니다.")
+        }
     }
     
     // MARK: - Actions
+    
+    private func saveCharacter() {
+        Task {
+            isSaving = true
+            
+            do {
+                _ = try await storageService.saveCharacter(character)
+                showingSaveAlert = true
+                print("💾 CharacterResultView: Character saved successfully")
+            } catch {
+                print("❌ CharacterResultView: Save failed - \(error)")
+                // 에러는 StorageService에서 이미 처리됨
+            }
+            
+            isSaving = false
+        }
+    }
     
     private func copyCharacter() {
         UIPasteboard.general.string = characterShareText
@@ -146,6 +202,12 @@ struct CharacterResultView: View {
     private func shareCharacter() {
         showingShareSheet = true
         print("📤 CharacterResultView: Opening share sheet")
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var isCharacterSaved: Bool {
+        return storageService.isCharacterSaved(character)
     }
     
     private var characterShareText: String {

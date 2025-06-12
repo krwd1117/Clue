@@ -13,15 +13,41 @@ struct MainTabView: View {
     @EnvironmentObject var authService: AuthService
     @StateObject private var navigationRouter = NavigationRouter()
     @StateObject private var viewModel = MainTabViewModel()
+    @State private var selectedTab = 0
     
     var body: some View {
-        NavigationStack(path: $navigationRouter.path) {
-            HomeView()
-                .navigationDestination(for: AppNavigationPath.self) { destination in
-                    navigationRouter.buildView(for: destination)
+        TabView(selection: $selectedTab) {
+            // 첫 번째 탭: 홈
+            NavigationStack(path: $navigationRouter.path) {
+                HomeView()
+                    .navigationDestination(for: AppNavigationPath.self) { destination in
+                        navigationRouter.buildView(for: destination)
+                    }
+            }
+            .environmentObject(navigationRouter)
+            .tabItem {
+                Image(systemName: selectedTab == 0 ? "house.fill" : "house")
+                Text("홈")
+            }
+            .tag(0)
+            
+            // 두 번째 탭: 내 캐릭터 (그리드)
+            SavedCharactersView()
+                .environmentObject(navigationRouter)
+                .tabItem {
+                    Image(systemName: selectedTab == 1 ? "person.3.fill" : "person.3")
+                    Text("내 캐릭터")
                 }
+                .tag(1)
+            
+            // 세 번째 탭: 프로필/설정
+            ProfileView()
+                .tabItem {
+                    Image(systemName: selectedTab == 2 ? "person.circle.fill" : "person.circle")
+                    Text("프로필")
+                }
+                .tag(2)
         }
-        .environmentObject(navigationRouter)
         .sheet(item: Binding<AppSheetItem?>(
             get: { navigationRouter.presentedSheet.map(AppSheetItem.init) },
             set: { _ in navigationRouter.dismissSheet() }
