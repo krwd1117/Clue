@@ -53,6 +53,16 @@ class CharacterStorageService: ObservableObject {
                 let conflict: String
                 let model_used: String?
                 let tokens_used: Int?
+                let genre: String?
+                let theme: String?
+                let era: String?
+                let mood: String?
+                let personality: String?
+                let origin: String?
+                let weakness: String?
+                let motivation: String?
+                let goal: String?
+                let twist: String?
             }
             
             let insertData = CharacterInsertData(
@@ -64,7 +74,17 @@ class CharacterStorageService: ObservableObject {
                 backstory: character.backstory,
                 conflict: character.conflict,
                 model_used: character.modelUsed,
-                tokens_used: character.tokensUsed
+                tokens_used: character.tokensUsed,
+                genre: character.genre,
+                theme: character.theme,
+                era: character.era,
+                mood: character.mood,
+                personality: character.personality,
+                origin: character.origin,
+                weakness: character.weakness,
+                motivation: character.motivation,
+                goal: character.goal,
+                twist: character.twist
             )
             
             // 데이터베이스에 저장
@@ -216,6 +236,16 @@ class CharacterStorageService: ObservableObject {
                 let conflict: String
                 let model_used: String?
                 let tokens_used: Int?
+                let genre: String?
+                let theme: String?
+                let era: String?
+                let mood: String?
+                let personality: String?
+                let origin: String?
+                let weakness: String?
+                let motivation: String?
+                let goal: String?
+                let twist: String?
             }
             
             let updateData = CharacterUpdateData(
@@ -225,7 +255,17 @@ class CharacterStorageService: ObservableObject {
                 backstory: character.backstory,
                 conflict: character.conflict,
                 model_used: character.modelUsed,
-                tokens_used: character.tokensUsed
+                tokens_used: character.tokensUsed,
+                genre: character.genre,
+                theme: character.theme,
+                era: character.era,
+                mood: character.mood,
+                personality: character.personality,
+                origin: character.origin,
+                weakness: character.weakness,
+                motivation: character.motivation,
+                goal: character.goal,
+                twist: character.twist
             )
             
             let response: [GeneratedCharacter] = try await supabase

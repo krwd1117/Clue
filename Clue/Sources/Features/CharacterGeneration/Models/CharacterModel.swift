@@ -20,10 +20,24 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
     // 메타데이터 (선택사항)
     let modelUsed: String?
     let tokensUsed: Int?
-    // generationSettings는 추후 필요시 추가
+    
+    // 생성 설정 (선택사항)
+    let genre: String?
+    let theme: String?
+    let era: String?
+    let mood: String?
+    let personality: String?
+    let origin: String?
+    let weakness: String?
+    let motivation: String?
+    let goal: String?
+    let twist: String?
     
     init(name: String, age: String, appearance: String, backstory: String, conflict: String, 
-         modelUsed: String? = nil, tokensUsed: Int? = nil) {
+         modelUsed: String? = nil, tokensUsed: Int? = nil,
+         genre: String? = nil, theme: String? = nil, era: String? = nil, mood: String? = nil,
+         personality: String? = nil, origin: String? = nil, weakness: String? = nil,
+         motivation: String? = nil, goal: String? = nil, twist: String? = nil) {
         self.id = UUID()
         self.name = name
         self.age = age
@@ -33,11 +47,24 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         self.createdAt = Date()
         self.modelUsed = modelUsed
         self.tokensUsed = tokensUsed
+        self.genre = genre
+        self.theme = theme
+        self.era = era
+        self.mood = mood
+        self.personality = personality
+        self.origin = origin
+        self.weakness = weakness
+        self.motivation = motivation
+        self.goal = goal
+        self.twist = twist
     }
     
     // 데이터베이스에서 로드할 때 사용하는 초기화
     init(id: UUID, name: String, age: String, appearance: String, backstory: String, conflict: String,
-         createdAt: Date, modelUsed: String? = nil, tokensUsed: Int? = nil) {
+         createdAt: Date, modelUsed: String? = nil, tokensUsed: Int? = nil,
+         genre: String? = nil, theme: String? = nil, era: String? = nil, mood: String? = nil,
+         personality: String? = nil, origin: String? = nil, weakness: String? = nil,
+         motivation: String? = nil, goal: String? = nil, twist: String? = nil) {
         self.id = id
         self.name = name
         self.age = age
@@ -47,6 +74,16 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
         self.modelUsed = modelUsed
         self.tokensUsed = tokensUsed
+        self.genre = genre
+        self.theme = theme
+        self.era = era
+        self.mood = mood
+        self.personality = personality
+        self.origin = origin
+        self.weakness = weakness
+        self.motivation = motivation
+        self.goal = goal
+        self.twist = twist
     }
     
     // MARK: - Codable Implementation
@@ -55,6 +92,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         case createdAt = "created_at"
         case modelUsed = "model_used"
         case tokensUsed = "tokens_used"
+        case genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
     }
     
     init(from decoder: Decoder) throws {
@@ -69,6 +107,16 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         modelUsed = try container.decodeIfPresent(String.self, forKey: .modelUsed)
         tokensUsed = try container.decodeIfPresent(Int.self, forKey: .tokensUsed)
+        genre = try container.decodeIfPresent(String.self, forKey: .genre)
+        theme = try container.decodeIfPresent(String.self, forKey: .theme)
+        era = try container.decodeIfPresent(String.self, forKey: .era)
+        mood = try container.decodeIfPresent(String.self, forKey: .mood)
+        personality = try container.decodeIfPresent(String.self, forKey: .personality)
+        origin = try container.decodeIfPresent(String.self, forKey: .origin)
+        weakness = try container.decodeIfPresent(String.self, forKey: .weakness)
+        motivation = try container.decodeIfPresent(String.self, forKey: .motivation)
+        goal = try container.decodeIfPresent(String.self, forKey: .goal)
+        twist = try container.decodeIfPresent(String.self, forKey: .twist)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -83,6 +131,16 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         try container.encode(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(modelUsed, forKey: .modelUsed)
         try container.encodeIfPresent(tokensUsed, forKey: .tokensUsed)
+        try container.encodeIfPresent(genre, forKey: .genre)
+        try container.encodeIfPresent(theme, forKey: .theme)
+        try container.encodeIfPresent(era, forKey: .era)
+        try container.encodeIfPresent(mood, forKey: .mood)
+        try container.encodeIfPresent(personality, forKey: .personality)
+        try container.encodeIfPresent(origin, forKey: .origin)
+        try container.encodeIfPresent(weakness, forKey: .weakness)
+        try container.encodeIfPresent(motivation, forKey: .motivation)
+        try container.encodeIfPresent(goal, forKey: .goal)
+        try container.encodeIfPresent(twist, forKey: .twist)
     }
 }
 
@@ -249,7 +307,7 @@ struct ChatChoice: Codable {
     let message: ChatMessage
 }
 
-// MARK: - Edge Function 요청/응답 모델
+// MARK: - Edge Function 요청/응답 모델 (기존 - 프롬프트 기반)
 struct EdgeFunctionRequest: Codable {
     let systemMessage: String
     let userMessage: String
@@ -264,12 +322,48 @@ struct EdgeFunctionRequest: Codable {
     }
 }
 
+// MARK: - Edge Function 요청 모델 (새로운 - 설정 기반)
+struct CharacterGenerationSettingsRequest: Codable {
+    let genre: String
+    let theme: String
+    let era: String
+    let mood: String
+    let personality: String
+    let origin: String
+    let weakness: String
+    let motivation: String
+    let goal: String
+    let twist: String
+    let maxTokens: Int
+    let temperature: Double
+    
+    private enum CodingKeys: String, CodingKey {
+        case genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
+        case maxTokens = "max_tokens"
+        case temperature
+    }
+}
+
 struct EdgeFunctionResponse: Codable {
     let success: Bool
     let character: EdgeCharacterData
     let error: String?
     let metadata: EdgeMetadata?
     let timestamp: String?
+    let settings: EdgeCharacterSettings?
+}
+
+struct EdgeCharacterSettings: Codable {
+    let genre: String?
+    let theme: String?
+    let era: String?
+    let mood: String?
+    let personality: String?
+    let origin: String?
+    let weakness: String?
+    let motivation: String?
+    let goal: String?
+    let twist: String?
 }
 
 struct EdgeMetadata: Codable {

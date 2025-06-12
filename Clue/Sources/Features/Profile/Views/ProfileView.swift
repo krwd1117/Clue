@@ -65,13 +65,6 @@ struct ProfileView: View {
                                     icon: "person.3.fill",
                                     color: .blue
                                 )
-                                
-                                StatCard(
-                                    title: "총 사용 토큰",
-                                    value: "\(totalTokensUsed)",
-                                    icon: "cpu.fill",
-                                    color: .purple
-                                )
                             }
                         }
                         .padding(.horizontal, 20)
@@ -175,34 +168,34 @@ struct ProfileView: View {
 }
 
 // MARK: - 통계 카드 컴포넌트
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-}
+//struct StatCard: View {
+//    let title: String
+//    let value: String
+//    let icon: String
+//    let color: Color
+//    
+//    var body: some View {
+//        VStack(spacing: 8) {
+//            Image(systemName: icon)
+//                .font(.system(size: 24))
+//                .foregroundColor(color)
+//            
+//            Text(value)
+//                .font(.title2)
+//                .fontWeight(.bold)
+//                .foregroundColor(.primary)
+//            
+//            Text(title)
+//                .font(.caption)
+//                .foregroundColor(.secondary)
+//                .multilineTextAlignment(.center)
+//        }
+//        .frame(maxWidth: .infinity)
+//        .padding(.vertical, 20)
+//        .background(Color(.systemGray6))
+//        .clipShape(RoundedRectangle(cornerRadius: 12))
+//    }
+//}
 
 // MARK: - 설정 행 컴포넌트
 struct SettingRow: View {
