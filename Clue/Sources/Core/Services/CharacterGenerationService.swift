@@ -59,6 +59,7 @@ class CharacterGenerationService: ObservableObject {
         print("🌐 Calling Supabase Edge Function with 10 settings")
         
         let settingsRequest = CharacterGenerationSettingsRequest(
+            gender: settings.gender,
             genre: settings.genre,
             theme: settings.theme,
             era: settings.era,
@@ -136,6 +137,7 @@ class CharacterGenerationService: ObservableObject {
                 conflict: edgeResponse.character.conflict,
                 modelUsed: modelUsed,
                 tokensUsed: tokensUsed,
+                gender: responseSettings?.gender,
                 genre: responseSettings?.genre,
                 theme: responseSettings?.theme,
                 era: responseSettings?.era,

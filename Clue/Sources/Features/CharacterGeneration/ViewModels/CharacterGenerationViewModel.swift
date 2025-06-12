@@ -12,7 +12,8 @@ import SwiftUI
 class CharacterGenerationViewModel: ObservableObject {
     // MARK: - Published Properties
     
-    // 동적 선택 데이터 (10개 카테고리)
+    // 동적 선택 데이터 (11개 카테고리)
+    @Published var selectedGenderId: Int?
     @Published var selectedGenreId: Int?
     @Published var selectedThemeId: Int?
     @Published var selectedEraId: Int?
@@ -28,7 +29,7 @@ class CharacterGenerationViewModel: ObservableObject {
     @Published var expandedCategories: Set<TaxonomyCategory> = []
     @Published var selectedParents: [TaxonomyCategory: TaxonomyItem] = [:]
     
-    // '모두' 선택 및 직접 입력 관리
+    // '무작위' 선택 및 직접 입력 관리
     @Published var selectAllCategories: Set<TaxonomyCategory> = []
     @Published var customInputs: [TaxonomyCategory: String] = [:]
     @Published var showingCustomInput: Set<TaxonomyCategory> = []
@@ -92,6 +93,7 @@ class CharacterGenerationViewModel: ObservableObject {
         print("🎭 CharacterGenerationViewModel: Starting character generation")
         
         // 각 카테고리별로 설정 값 확인 및 생성
+        let genderValue = getValueForCategory(.gender)
         let genreValue = getValueForCategory(.genre)
         let themeValue = getValueForCategory(.theme)
         let eraValue = getValueForCategory(.era)
@@ -103,7 +105,7 @@ class CharacterGenerationViewModel: ObservableObject {
         let goalValue = getValueForCategory(.goal)
         let twistValue = getValueForCategory(.twist)
         
-        print("🎯 Settings - Genre: \(genreValue), Theme: \(themeValue), Era: \(eraValue), Mood: \(moodValue)")
+        print("🎯 Settings - Gender: \(genderValue), Genre: \(genreValue), Theme: \(themeValue), Era: \(eraValue), Mood: \(moodValue)")
         print("🎯 Personality: \(personalityValue), Origin: \(originValue), Weakness: \(weaknessValue)")
         print("🎯 Motivation: \(motivationValue), Goal: \(goalValue), Twist: \(twistValue)")
         
@@ -111,7 +113,7 @@ class CharacterGenerationViewModel: ObservableObject {
         showingError = false
         
         let settings = createEnhancedCharacterSettings(
-            genre: genreValue, theme: themeValue, era: eraValue, mood: moodValue,
+            gender: genderValue, genre: genreValue, theme: themeValue, era: eraValue, mood: moodValue,
             personality: personalityValue, origin: originValue, weakness: weaknessValue,
             motivation: motivationValue, goal: goalValue, twist: twistValue
         )
@@ -144,7 +146,7 @@ class CharacterGenerationViewModel: ObservableObject {
     }
     
     private func getValueForCategory(_ category: TaxonomyCategory) -> String {
-        // '모두' 선택된 경우
+        // '무작위' 선택된 경우
         if selectAllCategories.contains(category) {
             return "모든 \(category.displayName.lowercased())"
         }
@@ -163,11 +165,12 @@ class CharacterGenerationViewModel: ObservableObject {
     }
     
     private func createEnhancedCharacterSettings(
-        genre: String, theme: String, era: String, mood: String,
+        gender: String, genre: String, theme: String, era: String, mood: String,
         personality: String, origin: String, weakness: String,
         motivation: String, goal: String, twist: String
     ) -> EnhancedCharacterSettings {
         return EnhancedCharacterSettings(
+            gender: gender,
             genre: genre,
             theme: theme,
             era: era,
@@ -214,6 +217,7 @@ class CharacterGenerationViewModel: ObservableObject {
     
     func resetSettings() {
         print("🔄 CharacterGenerationViewModel: Resetting all selections")
+        selectedGenderId = nil
         selectedGenreId = nil
         selectedThemeId = nil
         selectedEraId = nil
@@ -228,6 +232,7 @@ class CharacterGenerationViewModel: ObservableObject {
     
     var canGenerate: Bool {
         return !isGenerating && 
+               hasValidSelection(for: .gender) &&
                hasValidSelection(for: .genre) &&
                hasValidSelection(for: .theme) &&
                hasValidSelection(for: .era) &&
@@ -242,7 +247,7 @@ class CharacterGenerationViewModel: ObservableObject {
     }
     
     private func hasValidSelection(for category: TaxonomyCategory) -> Bool {
-        // '모두' 선택된 경우
+        // '무작위' 선택된 경우
         if selectAllCategories.contains(category) {
             return true
         }
@@ -255,6 +260,7 @@ class CharacterGenerationViewModel: ObservableObject {
         // 일반 선택이 있는 경우 (양수 ID만)
         let selectedId: Int?
         switch category {
+        case .gender: selectedId = selectedGenderId
         case .genre: selectedId = selectedGenreId
         case .theme: selectedId = selectedThemeId
         case .era: selectedId = selectedEraId
@@ -339,7 +345,7 @@ class CharacterGenerationViewModel: ObservableObject {
         
         for category in availableCategories {
             if selectAllCategories.contains(category) {
-                descriptions.append("\(category.displayName): 모두")
+                descriptions.append("\(category.displayName): 무작위")
             } else if let customInput = customInputs[category], !customInput.isEmpty {
                 descriptions.append("\(category.displayName): \(customInput)")
             } else if let selectedItem = getSelectedItem(for: category) {
@@ -365,6 +371,7 @@ class CharacterGenerationViewModel: ObservableObject {
     private func getSelectedItem(for category: TaxonomyCategory) -> TaxonomyItem? {
         let selectedId: Int?
         switch category {
+        case .gender: selectedId = selectedGenderId
         case .genre: selectedId = selectedGenreId
         case .theme: selectedId = selectedThemeId
         case .era: selectedId = selectedEraId
@@ -446,18 +453,18 @@ class CharacterGenerationViewModel: ObservableObject {
         resetSettings()
     }
     
-    // MARK: - '모두' 선택 및 직접 입력 관리
+    // MARK: - '무작위' 선택 및 직접 입력 관리
     
     func selectAllForCategory(_ category: TaxonomyCategory) {
         if selectAllCategories.contains(category) {
-            // 이미 '모두'가 선택된 경우 해제
+            // 이미 '무작위'가 선택된 경우 해제
             print("🎯 Deselected 'All' for category: \(category)")
             selectAllCategories.remove(category)
             
             // 해당 카테고리의 선택을 완전히 비움
             updateSelectionForCategory(category, itemId: nil)
         } else {
-            // '모두' 선택
+            // '무작위' 선택
             print("🎯 Selected 'All' for category: \(category)")
             selectAllCategories.insert(category)
             
@@ -515,6 +522,7 @@ class CharacterGenerationViewModel: ObservableObject {
     
     private func updateSelectionForCategory(_ category: TaxonomyCategory, itemId: Int?) {
         switch category {
+        case .gender: selectedGenderId = itemId
         case .genre: selectedGenreId = itemId
         case .theme: selectedThemeId = itemId
         case .era: selectedEraId = itemId
@@ -533,6 +541,9 @@ class CharacterGenerationViewModel: ObservableObject {
     func getSelectedItems() -> [TaxonomyItem] {
         var items: [TaxonomyItem] = []
         
+        if let genderId = selectedGenderId, let gender = taxonomyService.getItem(by: genderId) {
+            items.append(gender)
+        }
         if let genreId = selectedGenreId, let genre = taxonomyService.getItem(by: genreId) {
             items.append(genre)
         }
@@ -575,6 +586,7 @@ class CharacterGenerationViewModel: ObservableObject {
     
     private func getSelectedIdForCategory(_ category: TaxonomyCategory) -> Int? {
         switch category {
+        case .gender: return selectedGenderId
         case .genre: return selectedGenreId
         case .theme: return selectedThemeId
         case .era: return selectedEraId
@@ -586,5 +598,41 @@ class CharacterGenerationViewModel: ObservableObject {
         case .goal: return selectedGoalId
         case .twist: return selectedTwistId
         }
+    }
+    
+    // MARK: - 전체 '무작위' 선택 기능
+    
+    func selectAllCategoriesGlobally() {
+        print("🎯 Selecting 'All' for all categories")
+        
+        for category in availableCategories {
+            if !selectAllCategories.contains(category) {
+                selectAllCategories.insert(category)
+                
+                // 기존 선택들 해제
+                selectedParents.removeValue(forKey: category)
+                customInputs.removeValue(forKey: category)
+                showingCustomInput.remove(category)
+                expandedCategories.remove(category)
+                
+                // 해당 카테고리의 선택을 특별한 값으로 설정 (예: -1)
+                updateSelectionForCategory(category, itemId: -1)
+            }
+        }
+    }
+    
+    func deselectAllCategories() {
+        print("🎯 Deselecting 'All' for all categories")
+        
+        selectAllCategories.removeAll()
+        selectedParents.removeAll()
+        customInputs.removeAll()
+        showingCustomInput.removeAll()
+        expandedCategories.removeAll()
+        resetSettings()
+    }
+    
+    var isAllCategoriesSelected: Bool {
+        return selectAllCategories.count == availableCategories.count
     }
 } 

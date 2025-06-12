@@ -53,6 +53,7 @@ class CharacterStorageService: ObservableObject {
                 let conflict: String
                 let model_used: String?
                 let tokens_used: Int?
+                let gender: String?
                 let genre: String?
                 let theme: String?
                 let era: String?
@@ -75,6 +76,7 @@ class CharacterStorageService: ObservableObject {
                 conflict: character.conflict,
                 model_used: character.modelUsed,
                 tokens_used: character.tokensUsed,
+                gender: character.gender,
                 genre: character.genre,
                 theme: character.theme,
                 era: character.era,

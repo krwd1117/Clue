@@ -22,6 +22,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
     let tokensUsed: Int?
     
     // 생성 설정 (선택사항)
+    let gender: String?
     let genre: String?
     let theme: String?
     let era: String?
@@ -34,7 +35,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
     let twist: String?
     
     init(name: String, age: String, appearance: String, backstory: String, conflict: String, 
-         modelUsed: String? = nil, tokensUsed: Int? = nil,
+         modelUsed: String? = nil, tokensUsed: Int? = nil, gender: String? = nil,
          genre: String? = nil, theme: String? = nil, era: String? = nil, mood: String? = nil,
          personality: String? = nil, origin: String? = nil, weakness: String? = nil,
          motivation: String? = nil, goal: String? = nil, twist: String? = nil) {
@@ -47,6 +48,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         self.createdAt = Date()
         self.modelUsed = modelUsed
         self.tokensUsed = tokensUsed
+        self.gender = gender
         self.genre = genre
         self.theme = theme
         self.era = era
@@ -62,7 +64,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
     // 데이터베이스에서 로드할 때 사용하는 초기화
     init(id: UUID, name: String, age: String, appearance: String, backstory: String, conflict: String,
          createdAt: Date, modelUsed: String? = nil, tokensUsed: Int? = nil,
-         genre: String? = nil, theme: String? = nil, era: String? = nil, mood: String? = nil,
+         gender: String? = nil, genre: String? = nil, theme: String? = nil, era: String? = nil, mood: String? = nil,
          personality: String? = nil, origin: String? = nil, weakness: String? = nil,
          motivation: String? = nil, goal: String? = nil, twist: String? = nil) {
         self.id = id
@@ -74,6 +76,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
         self.modelUsed = modelUsed
         self.tokensUsed = tokensUsed
+        self.gender = gender
         self.genre = genre
         self.theme = theme
         self.era = era
@@ -92,7 +95,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         case createdAt = "created_at"
         case modelUsed = "model_used"
         case tokensUsed = "tokens_used"
-        case genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
+        case gender, genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
     }
     
     init(from decoder: Decoder) throws {
@@ -107,6 +110,7 @@ struct GeneratedCharacter: Identifiable, Codable, Hashable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         modelUsed = try container.decodeIfPresent(String.self, forKey: .modelUsed)
         tokensUsed = try container.decodeIfPresent(Int.self, forKey: .tokensUsed)
+        gender = try container.decodeIfPresent(String.self, forKey: .gender)
         genre = try container.decodeIfPresent(String.self, forKey: .genre)
         theme = try container.decodeIfPresent(String.self, forKey: .theme)
         era = try container.decodeIfPresent(String.self, forKey: .era)
@@ -154,6 +158,7 @@ struct CharacterSettings: Codable, Hashable
 
 // MARK: - 향상된 캐릭터 생성 설정 모델 (문자열 기반)
 struct EnhancedCharacterSettings: Codable, Hashable {
+    let gender: String
     let genre: String
     let theme: String
     let era: String
@@ -324,6 +329,7 @@ struct EdgeFunctionRequest: Codable {
 
 // MARK: - Edge Function 요청 모델 (새로운 - 설정 기반)
 struct CharacterGenerationSettingsRequest: Codable {
+    let gender: String
     let genre: String
     let theme: String
     let era: String
@@ -338,7 +344,7 @@ struct CharacterGenerationSettingsRequest: Codable {
     let temperature: Double
     
     private enum CodingKeys: String, CodingKey {
-        case genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
+        case gender, genre, theme, era, mood, personality, origin, weakness, motivation, goal, twist
         case maxTokens = "max_tokens"
         case temperature
     }
@@ -354,6 +360,7 @@ struct EdgeFunctionResponse: Codable {
 }
 
 struct EdgeCharacterSettings: Codable {
+    let gender: String?
     let genre: String?
     let theme: String?
     let era: String?

@@ -29,6 +29,7 @@ struct TaxonomyItem: Identifiable, Codable, Hashable {
 
 // MARK: - Taxonomy 카테고리
 enum TaxonomyCategory: String, Codable, CaseIterable {
+    case gender = "성별"
     case genre = "장르"
     case theme = "테마"
     case era = "시대"
@@ -46,6 +47,7 @@ enum TaxonomyCategory: String, Codable, CaseIterable {
     
     var description: String {
         switch self {
+        case .gender: return "어떤 성별인가요?"
         case .genre: return "어떤 세계관인가요?"
         case .theme: return "어떤 주제를 다루고 싶나요?"
         case .era: return "언제 시대인가요?"
@@ -65,6 +67,7 @@ enum TaxonomyCategory: String, Codable, CaseIterable {
         let rawValue = try container.decode(String.self)
         
         switch rawValue {
+        case "성별": self = .gender
         case "장르": self = .genre
         case "테마": self = .theme
         case "시대": self = .era
