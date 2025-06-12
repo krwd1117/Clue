@@ -14,61 +14,43 @@ struct ProfileView: View {
     @StateObject private var storageService = CharacterStorageService.shared
     @State private var showingLogoutConfirm = false
     @State private var isAnimating = false
-    @State private var profilePulse = false
-    @State private var achievementVisible = false
+    @State private var profileVisible = false
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 창작 테마 배경
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.1, green: 0.05, blue: 0.3), // 깊은 보라
-                        Color(red: 0.2, green: 0.1, blue: 0.4),  // 중간 보라
-                        Color(red: 0.3, green: 0.2, blue: 0.5),  // 밝은 보라
-                        Color(red: 0.4, green: 0.3, blue: 0.6)   // 연한 보라
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea(.all)
-                
-                // 떠다니는 창작 요소들
-                ForEach(0..<6, id: \.self) { index in
-                    FloatingProfileElement(index: index)
-                        .opacity(0.15)
-                }
+                // 깔끔한 흰색 배경
+                Color.white
+                    .ignoresSafeArea(.all)
                 
                 ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 40) {
+                    VStack(spacing: 32) {
                         // 사용자 프로필 섹션
                         if authService.isAuthenticated {
-                            CreativeProfileHeader(
-                                user: authService.currentUser,
-                                profilePulse: $profilePulse
+                            ProfileHeader(
+                                user: authService.currentUser
                             )
                             .padding(.top, 20)
                             
-                            // 창작 통계 섹션
-                            CreativeStatsSection(
+                            // 통계 섹션
+                            StatsSection(
                                 charactersCount: storageService.charactersCount,
-                                totalTokens: totalTokensUsed,
-                                achievementVisible: $achievementVisible
+                                totalTokens: totalTokensUsed
                             )
                             
-                            // 창작자 성취 섹션
-                            CreativeAchievementSection(
+                            // 성취 섹션
+                            AchievementSection(
                                 charactersCount: storageService.charactersCount
                             )
                             
                             // 설정 섹션
-                            CreativeSettingsSection(
+                            SettingsSection(
                                 showingLogoutConfirm: $showingLogoutConfirm
                             )
                             
                         } else {
                             // 로그인되지 않은 상태
-                            CreativeLoginPrompt()
+                            LoginPrompt()
                                 .padding(.top, 60)
                         }
                         
@@ -76,29 +58,24 @@ struct ProfileView: View {
                     }
                     .padding(.horizontal, 20)
                 }
+                .opacity(profileVisible ? 1 : 0)
+                .offset(y: profileVisible ? 0 : 20)
             }
         }
         .navigationTitle("")
         .navigationBarHidden(true)
-        .alert("창작 여정 종료", isPresented: $showingLogoutConfirm) {
-            Button("계속 창작하기", role: .cancel) { }
-            Button("여정 종료", role: .destructive) {
+        .alert("로그아웃", isPresented: $showingLogoutConfirm) {
+            Button("취소", role: .cancel) { }
+            Button("로그아웃", role: .destructive) {
                 logout()
             }
         } message: {
-            Text("정말 창작 여정을 마무리하시겠습니까?")
+            Text("정말 로그아웃하시겠습니까?")
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 1.0)) {
+            withAnimation(.easeOut(duration: 0.6)) {
                 isAnimating = true
-            }
-            
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                profilePulse = true
-            }
-            
-            withAnimation(.easeInOut(duration: 0.8).delay(0.5)) {
-                achievementVisible = true
+                profileVisible = true
             }
         }
     }
@@ -122,278 +99,94 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - 떠다니는 프로필 요소
-struct FloatingProfileElement: View {
-    let index: Int
-    @State private var isMoving = false
-    @State private var rotation: Double = 0
-    
-    private let symbols = ["person.crop.artframe", "paintbrush.pointed", "star.circle", "heart.circle", "trophy.circle", "crown"]
-    private let colors: [Color] = [.cyan, .purple, .pink, .orange, .yellow, .mint]
-    
-    var body: some View {
-        Image(systemName: symbols[index % symbols.count])
-            .font(.system(size: CGFloat.random(in: 20...40), weight: .light))
-            .foregroundColor(colors[index % colors.count])
-            .opacity(0.7)
-            .offset(
-                x: isMoving ? CGFloat.random(in: -100...100) : CGFloat.random(in: -50...50),
-                y: isMoving ? CGFloat.random(in: -200...200) : CGFloat.random(in: -100...100)
-            )
-            .rotationEffect(.degrees(rotation))
-            .animation(
-                .easeInOut(duration: Double.random(in: 5...9))
-                .repeatForever(autoreverses: true)
-                .delay(Double(index) * 0.4),
-                value: isMoving
-            )
-            .animation(
-                .linear(duration: Double.random(in: 15...25))
-                .repeatForever(autoreverses: false)
-                .delay(Double(index) * 0.3),
-                value: rotation
-            )
-            .onAppear {
-                isMoving = true
-                rotation = 360
-            }
-    }
-}
-
-// MARK: - 창작자 프로필 헤더
-struct CreativeProfileHeader: View {
+// MARK: - 프로필 헤더
+struct ProfileHeader: View {
     let user: User?
-    @Binding var profilePulse: Bool
     
     var body: some View {
-        VStack(spacing: 25) {
-            // 프로필 이미지 및 장식
+        VStack(spacing: 20) {
+            // 프로필 이미지
             ZStack {
-                // 배경 원형 효과들
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                Color.cyan.opacity(0.3),
-                                Color.purple.opacity(0.2),
-                                Color.clear
-                            ]),
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 80
-                        )
-                    )
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(profilePulse ? 1.1 : 1.0)
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 80, height: 80)
                 
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                Color.pink.opacity(0.2),
-                                Color.clear
-                            ]),
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 60
-                        )
-                    )
-                    .frame(width: 120, height: 120)
-                    .scaleEffect(profilePulse ? 0.9 : 1.0)
-                
-                // 메인 프로필 원
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.cyan.opacity(0.8),
-                                Color.purple.opacity(0.9),
-                                Color.pink.opacity(0.7)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 100, height: 100)
-                    .overlay(
-                        Image(systemName: "person.crop.artframe")
-                            .font(.system(size: 40, weight: .light))
-                            .foregroundColor(.white)
-                    )
-                    .shadow(color: .cyan.opacity(0.4), radius: 15)
+                Image(systemName: "person.crop.artframe")
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundColor(.blue)
             }
             
             // 사용자 정보
-            VStack(spacing: 12) {
-                Text(user?.displayName ?? "창작자")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.white, .cyan.opacity(0.9)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+            VStack(spacing: 8) {
+                Text(user?.displayName ?? "사용자")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.black)
                 
                 Text(user?.email ?? "")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.8))
-                
-                Text("✨ 상상력을 현실로 만드는 창작자 ✨")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(.cyan.opacity(0.8))
-                    .multilineTextAlignment(.center)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gray)
             }
         }
     }
 }
 
-// MARK: - 창작 통계 섹션
-struct CreativeStatsSection: View {
+// MARK: - 통계 섹션
+struct StatsSection: View {
     let charactersCount: Int
     let totalTokens: Int
-    @Binding var achievementVisible: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             HStack {
-                Image(systemName: "chart.bar.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.cyan)
-                
-                Text("창작 통계")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                Text("활동 통계")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
                 
                 Spacer()
             }
             
             HStack(spacing: 16) {
-                CreativeStatCard(
+                StatCard(
                     title: "생성한 캐릭터",
                     value: "\(charactersCount)",
                     icon: "person.3.fill",
-                    colors: [.cyan, .blue],
-                    delay: 0.0
+                    color: .blue
                 )
                 
-                CreativeStatCard(
-                    title: "창작 경험치",
+                StatCard(
+                    title: "사용한 토큰",
                     value: "\(totalTokens)",
                     icon: "star.fill",
-                    colors: [.purple, .pink],
-                    delay: 0.1
+                    color: .orange
                 )
-            }
-        }
-        .opacity(achievementVisible ? 1 : 0)
-        .offset(y: achievementVisible ? 0 : 20)
-    }
-}
-
-// MARK: - 창작 통계 카드
-struct CreativeStatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let colors: [Color]
-    let delay: Double
-    @State private var isVisible = false
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: colors.map { $0.opacity(0.3) },
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 50, height: 50)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: colors,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-            
-            VStack(spacing: 4) {
-                Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                
-                Text(title)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.8))
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.1),
-                            Color.white.opacity(0.05)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(
-                            LinearGradient(
-                                colors: colors.map { $0.opacity(0.3) },
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
-        .scaleEffect(isVisible ? 1 : 0.8)
-        .opacity(isVisible ? 1 : 0)
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(delay)) {
-                isVisible = true
             }
         }
     }
 }
 
-// MARK: - 창작자 성취 섹션
-struct CreativeAchievementSection: View {
+// MARK: - 성취 섹션
+struct AchievementSection: View {
     let charactersCount: Int
     
     private var achievements: [Achievement] {
         [
             Achievement(
                 title: "첫 걸음",
-                description: "첫 번째 캐릭터 창조",
+                description: "첫 번째 캐릭터 생성",
                 icon: "star.fill",
                 color: .yellow,
                 isUnlocked: charactersCount >= 1
             ),
             Achievement(
-                title: "창작 열정",
-                description: "5개 캐릭터 창조",
+                title: "열정적인 창작자",
+                description: "5개 캐릭터 생성",
                 icon: "flame.fill",
                 color: .orange,
                 isUnlocked: charactersCount >= 5
             ),
             Achievement(
                 title: "마스터 창작자",
-                description: "10개 캐릭터 창조",
+                description: "10개 캐릭터 생성",
                 icon: "crown.fill",
                 color: .purple,
                 isUnlocked: charactersCount >= 10
@@ -402,15 +195,11 @@ struct CreativeAchievementSection: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             HStack {
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.yellow)
-                
-                Text("창작 성취")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                Text("성취")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
                 
                 Spacer()
             }
@@ -421,10 +210,7 @@ struct CreativeAchievementSection: View {
                 GridItem(.flexible())
             ], spacing: 12) {
                 ForEach(achievements.indices, id: \.self) { index in
-                    AchievementBadge(
-                        achievement: achievements[index],
-                        delay: Double(index) * 0.1
-                    )
+                    AchievementBadge(achievement: achievements[index])
                 }
             }
         }
@@ -443,127 +229,61 @@ struct Achievement {
 // MARK: - 성취 배지
 struct AchievementBadge: View {
     let achievement: Achievement
-    let delay: Double
-    @State private var isVisible = false
     
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .fill(
-                        achievement.isUnlocked ?
-                        LinearGradient(
-                            colors: [achievement.color.opacity(0.3), achievement.color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ) :
-                        LinearGradient(
-                            colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 40, height: 40)
+                    .fill(achievement.isUnlocked ? achievement.color.opacity(0.1) : Color.gray.opacity(0.1))
+                    .frame(width: 32, height: 32)
                 
                 Image(systemName: achievement.icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(achievement.isUnlocked ? achievement.color : .gray)
             }
             
             VStack(spacing: 2) {
                 Text(achievement.title)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundColor(achievement.isUnlocked ? .white : .gray)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(achievement.isUnlocked ? .black : .gray)
                 
                 Text(achievement.description)
-                    .font(.system(size: 10, weight: .regular, design: .rounded))
-                    .foregroundColor(achievement.isUnlocked ? .white.opacity(0.8) : .gray.opacity(0.6))
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundColor(achievement.isUnlocked ? .gray : .gray.opacity(0.6))
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
         }
         .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(
-                    achievement.isUnlocked ?
-                    Color.white.opacity(0.05) :
-                    Color.black.opacity(0.1)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(
-                            achievement.isUnlocked ?
-                            achievement.color.opacity(0.3) :
-                            Color.gray.opacity(0.2),
-                            lineWidth: 1
-                        )
-                )
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(achievement.isUnlocked ? achievement.color.opacity(0.3) : Color.gray.opacity(0.2), lineWidth: 1)
         )
-        .scaleEffect(isVisible ? 1 : 0.8)
-        .opacity(isVisible ? 1 : 0)
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(delay)) {
-                isVisible = true
-            }
-        }
     }
 }
 
-// MARK: - 창작 설정 섹션
-struct CreativeSettingsSection: View {
+// MARK: - 설정 섹션
+struct SettingsSection: View {
     @Binding var showingLogoutConfirm: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             HStack {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.purple)
-                
-                Text("창작 도구")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                Text("설정")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
                 
                 Spacer()
             }
             
-            VStack(spacing: 12) {
-                CreativeSettingRow(
-                    icon: "bell.fill",
-                    title: "알림 설정",
-                    subtitle: "창작 영감 알림",
-                    color: .cyan,
-                    action: {
-                        // TODO: 알림 설정 화면
-                    }
-                )
-                
-                CreativeSettingRow(
-                    icon: "questionmark.circle.fill",
-                    title: "창작 가이드",
-                    subtitle: "도움말 및 팁",
-                    color: .mint,
-                    action: {
-                        // TODO: 도움말 화면
-                    }
-                )
-                
-                CreativeSettingRow(
-                    icon: "info.circle.fill",
-                    title: "앱 정보",
-                    subtitle: "버전 및 정보",
-                    color: .orange,
-                    action: {
-                        // TODO: 앱 정보 화면
-                    }
-                )
-                
-                CreativeSettingRow(
+            VStack(spacing: 8) {
+                SettingRow(
                     icon: "rectangle.portrait.and.arrow.right.fill",
-                    title: "창작 여정 종료",
-                    subtitle: "로그아웃",
-                    color: .pink,
+                    title: "로그아웃",
+                    subtitle: "계정에서 로그아웃",
+                    color: .red,
                     isDestructive: true,
                     action: {
                         showingLogoutConfirm = true
@@ -574,15 +294,14 @@ struct CreativeSettingsSection: View {
     }
 }
 
-// MARK: - 창작 설정 행
-struct CreativeSettingRow: View {
+// MARK: - 설정 행
+struct SettingRow: View {
     let icon: String
     let title: String
     let subtitle: String
     let color: Color
     let isDestructive: Bool
     let action: () -> Void
-    @State private var isPressed = false
     
     init(icon: String, title: String, subtitle: String, color: Color, isDestructive: Bool = false, action: @escaping () -> Void) {
         self.icon = icon
@@ -594,113 +313,68 @@ struct CreativeSettingRow: View {
     }
     
     var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isPressed = false
-                }
-            }
-            action()
-        }) {
-            HStack(spacing: 16) {
+        Button(action: action) {
+            HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(color.opacity(0.2))
-                        .frame(width: 40, height: 40)
+                        .fill(color.opacity(0.1))
+                        .frame(width: 32, height: 32)
                     
                     Image(systemName: icon)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(isDestructive ? .pink : color)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(color)
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(isDestructive ? .pink : .white)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(isDestructive ? .red : .black)
                     
                     Text(subtitle)
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundColor(isDestructive ? .pink.opacity(0.7) : .white.opacity(0.7))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.gray)
                 }
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.4))
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.gray)
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                color.opacity(0.3),
-                                lineWidth: 1
-                            )
-                    )
+            .padding(12)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
             )
         }
-        .scaleEffect(isPressed ? 0.95 : 1.0)
     }
 }
 
-// MARK: - 창작 로그인 프롬프트
-struct CreativeLoginPrompt: View {
+// MARK: - 로그인 프롬프트
+struct LoginPrompt: View {
     var body: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [
-                                Color.white.opacity(0.1),
-                                Color.clear
-                            ]),
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 60
-                        )
-                    )
-                    .frame(width: 120, height: 120)
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 80, height: 80)
                 
                 Image(systemName: "person.crop.artframe")
-                    .font(.system(size: 60, weight: .ultraLight))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.white.opacity(0.8), .cyan.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .font(.system(size: 32, weight: .light))
+                    .foregroundColor(.blue)
             }
             
             VStack(spacing: 12) {
-                Text("창작자 등록이 필요합니다")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                Text("로그인이 필요합니다")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.black)
                 
-                Text("프로필을 보고 창작 여정을 시작하려면\n로그인해주세요")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.8))
+                Text("프로필을 보려면 로그인해주세요")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
-                
-                Text("✨ 상상력을 현실로 만들어보세요 ✨")
-                    .font(.system(size: 14, weight: .regular, design: .rounded))
-                    .foregroundColor(.cyan.opacity(0.8))
             }
         }
     }

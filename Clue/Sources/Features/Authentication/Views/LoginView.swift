@@ -12,99 +12,54 @@ struct LoginView: View {
     @EnvironmentObject var appRouter: AppRouter
     @StateObject private var viewModel = LoginViewModel()
     @State private var isAnimating = false
-    @State private var floatingOffset: CGFloat = 0
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 캐릭터 창작 테마 배경 그라디언트
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color(red: 0.2, green: 0.1, blue: 0.4), // 깊은 보라
-                        Color(red: 0.4, green: 0.2, blue: 0.6), // 중간 보라
-                        Color(red: 0.6, green: 0.3, blue: 0.8), // 밝은 보라
-                        Color(red: 0.8, green: 0.4, blue: 0.9)  // 연한 보라-핑크
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                // 깔끔한 흰색 배경
+                Color.white
+                    .ignoresSafeArea()
                 
-                // 떠다니는 창작 요소들
-                ForEach(0..<6, id: \.self) { index in
-                    FloatingElement(index: index)
-                        .opacity(0.3)
-                }
-                
-                VStack(spacing: 40) {
+                VStack(spacing: 50) {
                     Spacer()
                     
-                    // 앱 로고 및 제목 - 캐릭터 창작 테마
-                    VStack(spacing: 25) {
+                    // 앱 로고 및 제목
+                    VStack(spacing: 30) {
                         ZStack {
                             // 배경 원형 효과
                             Circle()
-                                .fill(
-                                    RadialGradient(
-                                        gradient: Gradient(colors: [
-                                            Color.white.opacity(0.2),
-                                            Color.clear
-                                        ]),
-                                        center: .center,
-                                        startRadius: 0,
-                                        endRadius: 60
-                                    )
-                                )
+                                .fill(Color.blue.opacity(0.1))
                                 .frame(width: 120, height: 120)
-                                .scaleEffect(isAnimating ? 1.1 : 1.0)
+                                .scaleEffect(isAnimating ? 1.05 : 1.0)
                                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: isAnimating)
                             
-                            // 메인 아이콘 - 캐릭터 창작 도구
+                            // 메인 아이콘
                             Image(systemName: "person.crop.artframe")
                                 .font(.system(size: 60, weight: .light))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.white, .cyan.opacity(0.8)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .shadow(color: .white.opacity(0.3), radius: 10)
+                                .foregroundColor(.blue)
+                                .shadow(color: .black.opacity(0.05), radius: 5)
                         }
                         
                         VStack(spacing: 12) {
                             Text("Clue")
                                 .font(.system(size: 42, weight: .bold, design: .rounded))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white,
-                                            Color.cyan.opacity(0.9),
-                                            Color.purple.opacity(0.8)
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .shadow(color: .white.opacity(0.3), radius: 5)
+                                .foregroundColor(.black)
                             
                             Text("당신만의 캐릭터를 창조하세요")
                                 .font(.system(size: 18, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.9))
+                                .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
                             
                             Text("✨ 상상력을 현실로 ✨")
                                 .font(.system(size: 14, weight: .regular, design: .rounded))
-                                .foregroundColor(.cyan.opacity(0.8))
-                                .offset(y: floatingOffset)
-                                .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: floatingOffset)
+                                .foregroundColor(.blue)
                         }
                     }
                     
                     Spacer()
                     
-                    // OAuth 로그인 버튼들 - 캐릭터 테마
-                    VStack(spacing: 20) {
+                    // OAuth 로그인 버튼들
+                    VStack(spacing: 16) {
                         // Google 로그인
                         CreativeOAuthButton(
                             provider: .google,
@@ -123,52 +78,42 @@ struct LoginView: View {
                     }
                     .padding(.horizontal, 30)
                     
-                    // 로딩 인디케이터 - 창작 테마
+                    // 로딩 인디케이터
                     if viewModel.isLoading {
                         VStack(spacing: 12) {
                             ZStack {
                                 Circle()
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 3)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 3)
                                     .frame(width: 40, height: 40)
                                 
                                 Circle()
                                     .trim(from: 0, to: 0.7)
-                                    .stroke(
-                                        AngularGradient(
-                                            colors: [.cyan, .purple, .pink, .cyan],
-                                            center: .center
-                                        ),
-                                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                                    )
+                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                                     .frame(width: 40, height: 40)
                                     .rotationEffect(.degrees(isAnimating ? 360 : 0))
                                     .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isAnimating)
                             }
                             
-                            Text("캐릭터 세계로 연결 중...")
+                            Text("로그인 중...")
                                 .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundColor(.white.opacity(0.8))
+                                .foregroundColor(.gray)
                         }
                     }
                     
                     Spacer()
                     
-                    // 약관 동의 - 캐릭터 테마
+                    // 약관 동의
                     VStack(spacing: 12) {
                         HStack(spacing: 8) {
-                            Image(systemName: "paintbrush.pointed.fill")
+                            Image(systemName: "info.circle")
                                 .font(.system(size: 12))
-                                .foregroundColor(.cyan.opacity(0.7))
+                                .foregroundColor(.blue)
                             
-                            Text("창작의 여정을 시작하면 서비스 약관에 동의하게 됩니다")
+                            Text("로그인하면 서비스 약관에 동의하게 됩니다")
                                 .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(.white.opacity(0.7))
+                                .foregroundColor(.gray)
                                 .multilineTextAlignment(.center)
                         }
-                        
-                        Text("🎨 • 🎭 • ✏️ • 🌟")
-                            .font(.system(size: 16))
-                            .opacity(0.6)
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, 40)
@@ -184,43 +129,13 @@ struct LoginView: View {
             viewModel.setAppRouter(appRouter)
             withAnimation {
                 isAnimating = true
-                floatingOffset = -5
             }
 //            viewModel.setup()
         }
     }
 }
 
-// MARK: - 떠다니는 창작 요소
-struct FloatingElement: View {
-    let index: Int
-    @State private var isMoving = false
-    
-    private let symbols = ["paintbrush", "pencil", "wand.and.stars", "person.fill", "heart.fill", "star.fill"]
-    private let colors: [Color] = [.cyan, .purple, .pink, .orange, .yellow, .mint]
-    
-    var body: some View {
-        Image(systemName: symbols[index % symbols.count])
-            .font(.system(size: CGFloat.random(in: 20...40)))
-            .foregroundColor(colors[index % colors.count])
-            .offset(
-                x: isMoving ? CGFloat.random(in: -100...100) : CGFloat.random(in: -50...50),
-                y: isMoving ? CGFloat.random(in: -200...200) : CGFloat.random(in: -100...100)
-            )
-            .rotationEffect(.degrees(isMoving ? Double.random(in: 0...360) : 0))
-            .animation(
-                .easeInOut(duration: Double.random(in: 3...6))
-                .repeatForever(autoreverses: true)
-                .delay(Double(index) * 0.5),
-                value: isMoving
-            )
-            .onAppear {
-                isMoving = true
-            }
-    }
-}
-
-// MARK: - OAuth 제공자 열거형 (캐릭터 테마)
+// MARK: - OAuth 제공자 열거형
 enum OAuthProvider {
     case google
     case apple
@@ -261,7 +176,7 @@ enum OAuthProvider {
     }
 }
 
-// MARK: - 창작 테마 OAuth 버튼
+// MARK: - OAuth 버튼
 struct CreativeOAuthButton: View {
     let provider: OAuthProvider
     let isLoading: Bool
@@ -283,7 +198,7 @@ struct CreativeOAuthButton: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(provider.accentColor.opacity(0.2))
+                        .fill(provider.accentColor.opacity(0.1))
                         .frame(width: 35, height: 35)
                     
                     Image(systemName: provider.iconName)
@@ -296,7 +211,7 @@ struct CreativeOAuthButton: View {
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(provider.foregroundColor)
                     
-                    Text("캐릭터 창작 여정을 시작해보세요")
+                    Text("간편하게 로그인하세요")
                         .font(.system(size: 12, weight: .regular, design: .rounded))
                         .foregroundColor(provider.foregroundColor.opacity(0.7))
                 }
@@ -312,22 +227,10 @@ struct CreativeOAuthButton: View {
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(provider.backgroundColor)
-                    .shadow(
-                        color: provider.backgroundColor == .white ? .black.opacity(0.1) : .white.opacity(0.1),
-                        radius: isPressed ? 5 : 10,
-                        x: 0,
-                        y: isPressed ? 2 : 5
-                    )
+                    .shadow(color: .black.opacity(0.05), radius: isPressed ? 2 : 8, x: 0, y: isPressed ? 1 : 4)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [.cyan.opacity(0.3), .purple.opacity(0.3)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
                     )
             )
         }

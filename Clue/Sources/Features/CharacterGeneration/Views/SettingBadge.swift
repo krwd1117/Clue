@@ -37,3 +37,17 @@ struct SettingBadge: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
+
+// MARK: - 미리보기
+#Preview {
+    CharacterResultView(
+        character: GeneratedCharacter(
+            name: "리안느",
+            age: "27세",
+            appearance: "짙은 갈색 머리와 은빛 눈동자, 단단한 갑옷 차림",
+            backstory: "왕국의 몰락한 기사 가문 출신으로, 잃어버린 명예를 되찾기 위해 여행 중",
+            conflict: "과거 동료의 배신으로 믿음과 복수 사이에서 갈등"
+        ),
+        onDismiss: {}
+    )
+}
