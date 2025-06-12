@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+MyApp/
+├── App/                             # 앱 진입점 & 전역 라우팅
+│   └── MyAppApp.swift
+│
+├── Core/                            # 공통 기능
+│   ├── Services/                    # 네트워크·스토리지 등
+│   ├── Utilities/                   # 헬퍼, 확장(Extensions)
+│   ├── Resources/                   # 공통 리소스(Fonts, Colors)
+│   └── Router/                      # 화면 전환
+│
+├── Features/                        # 기능별 모듈
+│   ├── Authentication/              # — 로그인/회원가입
+│   │   ├── Views/
+│   │   │   └── LoginView.swift
+│   │   ├── ViewModels/
+│   │   │   └── AuthViewModel.swift
+│   │   ├── Models/
+│   │   │   └── User.swift
+│   │   └── Services/
+│   │       └── AuthService.swift
+│   │
+│   ├── Home/                        # — 홈 / 대시보드
+│   │   ├── Views/
+│   │   ├── ViewModels/
+│   │   └── Models/
+│   │
+│   └── Profile/                     # — 프로필 관리
+│       ├── Views/
+│       ├── ViewModels/
+│       └── Models/
+│
+├── Resources/                       # 에셋, 로컬라이제이션
+│   ├── Assets.xcassets
+│   └── en.lproj, ko.lproj 등
+│
+└── SupportingFiles/                 # Info.plist 등
+    └── Info.plist
