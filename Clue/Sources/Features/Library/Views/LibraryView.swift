@@ -30,6 +30,8 @@ struct LibraryView: View {
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
             .background(DesignSystem.Colors.background)
+            .navigationTitle("저장함")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -55,52 +57,6 @@ struct TabButton: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
-
-struct CharacterLibraryView: View {
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
-            ], spacing: DesignSystem.Spacing.md) {
-                
-                // Add new character card
-                TossAddNewCard(
-                    title: "새 캐릭터",
-                    icon: "plus"
-                ) {
-                    // TODO: Navigate to character creation
-                    print("새 캐릭터 생성")
-                }
-            }
-            .padding(DesignSystem.Spacing.lg)
-        }
-    }
-}
-
-struct ScenarioLibraryView: View {
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md),
-                GridItem(.flexible(), spacing: DesignSystem.Spacing.md)
-            ], spacing: DesignSystem.Spacing.md) {
-                
-                // Add new scenario card
-                TossAddNewCard(
-                    title: "새 시나리오",
-                    icon: "plus"
-                ) {
-                    // TODO: Navigate to scenario creation
-                    print("새 시나리오 생성")
-                }
-            }
-            .padding(DesignSystem.Spacing.lg)
-        }
-    }
-}
-
-
 
 #Preview {
     LibraryView()

@@ -141,31 +141,96 @@ struct TossAddNewCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: DesignSystem.Spacing.md) {
-                ZStack {
-                    Circle()
-                        .fill(DesignSystem.Colors.sectionBackground)
-                        .frame(width: 60, height: 60)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(DesignSystem.Colors.primary)
-                }
+            ZStack {
+                // Background card with dashed border
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 3)
+                    .shadow(color: Color.black.opacity(0.02), radius: 3, x: 0, y: 1)
                 
-                Text(title)
-                    .font(DesignSystem.Typography.caption)
-                    .foregroundColor(DesignSystem.Colors.textSecondary)
+                // Dashed border overlay
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(
+                        Color(red: 0.0, green: 0.4, blue: 1.0).opacity(0.3),
+                        style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [8, 6])
+                    )
+                
+                // Subtle gradient overlay
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 0.0, green: 0.4, blue: 1.0).opacity(0.02),
+                                Color.clear,
+                                Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.01)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                // Content
+                VStack(spacing: 16) {
+                    // Plus icon with enhanced styling
+                    ZStack {
+                        // Outer glow
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(
+                                RadialGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(red: 0.0, green: 0.4, blue: 1.0).opacity(0.08),
+                                        Color.clear
+                                    ]),
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 40
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                        
+                        // Main icon background
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color(red: 0.0, green: 0.4, blue: 1.0).opacity(0.1),
+                                        Color(red: 0.2, green: 0.6, blue: 1.0).opacity(0.05)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 68, height: 68)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18)
+                                    .stroke(
+                                        Color(red: 0.0, green: 0.4, blue: 1.0).opacity(0.2),
+                                        lineWidth: 1
+                                    )
+                            )
+                        
+                        // Plus icon
+                        Image(systemName: icon)
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(Color(red: 0.0, green: 0.4, blue: 1.0))
+                    }
+                    
+                    // Title
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 0.0, green: 0.4, blue: 1.0))
+                    
+                    // Subtitle
+                    Text("새로운 캐릭터를 만들어보세요")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.vertical, 28)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 140)
-            .background(DesignSystem.Colors.cardBackground)
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.md)
-                    .stroke(DesignSystem.Colors.border, style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [5, 5]))
-            )
-            .cornerRadius(DesignSystem.CornerRadius.md)
+            .frame(height: 180)
         }
-        .buttonStyle(TossButtonPressStyle())
+        .buttonStyle(EnhancedTossCardButtonStyle())
     }
 }
 
