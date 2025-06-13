@@ -3,7 +3,9 @@ import SwiftUI
 struct CharacterGenerateView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = CharacterGenerationViewModel()
-    @State private var showSuccessAlert = false
+    @State private var createdCharacter: Character?
+    @State private var showingCharacterDetail = false
+    @State private var showingSuccessView = false
     
     var body: some View {
         NavigationView {
@@ -63,12 +65,28 @@ struct CharacterGenerateView: View {
                     await viewModel.loadCategories()
                 }
             }
-            .alert("캐릭터 생성 완료", isPresented: $showSuccessAlert) {
-                Button("확인") {
-                    dismiss()
+            .fullScreenCover(isPresented: $showingSuccessView) {
+                if let character = createdCharacter {
+                    CharacterSuccessView(
+                        character: character,
+                        onViewCharacter: {
+                            showingSuccessView = false
+                            showingCharacterDetail = true
+                        },
+                        onGoHome: {
+                            showingSuccessView = false
+                            dismiss()
+                        }
+                    )
                 }
-            } message: {
-                Text("새로운 캐릭터가 성공적으로 생성되었습니다!")
+            }
+            .sheet(isPresented: $showingCharacterDetail) {
+                if let character = createdCharacter {
+                    CharacterDetailView(character: character) {
+                        // 모달 닫힐 때 홈으로 이동
+                        dismiss()
+                    }
+                }
             }
             .alert("오류", isPresented: .constant(viewModel.error != nil)) {
                 Button("확인") {
@@ -532,9 +550,9 @@ struct CharacterGenerateView: View {
                             isDisabled: !viewModel.canCreateCharacter
                         ) {
                             Task {
-                                let success = await viewModel.createCharacter()
-                                if success {
-                                    showSuccessAlert = true
+                                if let character = await viewModel.createCharacterAndReturn() {
+                                    createdCharacter = character
+                                    showingSuccessView = true
                                 }
                             }
                         }
@@ -565,8 +583,6 @@ struct CharacterGenerateView: View {
         .background(DesignSystem.Colors.cardBackground)
     }
 }
-
-
 
 #Preview {
     CharacterGenerateView()

@@ -249,6 +249,53 @@ class CharacterGenerationViewModel: ObservableObject {
         return false
     }
     
+    func createCharacterAndReturn() async -> Character? {
+        isCreatingCharacter = true
+        error = nil
+        
+        do {
+            // 각 카테고리별 선택된 옵션의 값(문자열)을 매핑
+            var selectedOptionsMap: [String: String] = [:]
+            
+            for selection in categorySelections {
+                if let selectedOption = selection.selectedOption {
+                    let categoryIdString = String(selection.category.id)
+                    
+                    if isOtherOption(selectedOption) {
+                        // 커스텀 옵션인 경우 사용자 입력 텍스트 저장 (빈 값도 허용)
+                        let customText = getCustomOptionText(for: selection.category).trimmingCharacters(in: .whitespacesAndNewlines)
+                        selectedOptionsMap[categoryIdString] = customText.isEmpty ? "" : customText
+                    } else {
+                        // 일반 옵션인 경우 옵션의 값(value) 저장
+                        selectedOptionsMap[categoryIdString] = selectedOption.value
+                    }
+                }
+            }
+            
+            // 이름 처리: 빈 값이거나 "무작위"인 경우 ChatGPT가 생성하도록 빈 문자열 전송
+            let finalName = characterName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let nameToSend = finalName.isEmpty || finalName.lowercased() == "무작위" ? "" : finalName
+            
+            let request = CharacterCreateRequest(
+                name: nameToSend,
+                selectedOptions: selectedOptionsMap,
+                description: nil
+            )
+            
+            let character = try await service.createCharacter(request)
+            
+            isCreatingCharacter = false
+            return character
+        } catch let appError as AppError {
+            error = appError
+        } catch {
+            self.error = AppError.network(error)
+        }
+        
+        isCreatingCharacter = false
+        return nil
+    }
+    
     var canCreateCharacter: Bool {
         guard !categorySelections.isEmpty,
               !isCreatingCharacter else {

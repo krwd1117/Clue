@@ -19,17 +19,6 @@ struct CharacterLibraryView: View {
                     GridItem(.flexible(), spacing: 20),
                     GridItem(.flexible(), spacing: 20)
                 ], spacing: 24) {
-                    
-                    // Add new character card
-                    TossAddNewCard(
-                        title: "새 캐릭터",
-                        icon: "plus"
-                    ) {
-                        // TODO: Navigate to character creation
-                        print("새 캐릭터 생성")
-                    }
-                    .id("add-new-card") // Unique ID to prevent interference
-                    
                     // Character cards
                     ForEach(viewModel.characters, id: \.id) { character in
                         CharacterCard(
@@ -135,7 +124,12 @@ struct CharacterLibraryView: View {
             await viewModel.loadCharacters()
         }
         .sheet(item: $selectedCharacter) { character in
-            CharacterDetailView(character: character)
+            CharacterDetailView(character: character) {
+                // 캐릭터 삭제 완료 후 목록 새로고침
+                Task {
+                    await viewModel.loadCharacters()
+                }
+            }
         }
         .alert("캐릭터 삭제", isPresented: $viewModel.showingDeleteAlert) {
             Button("취소", role: .cancel) {
@@ -155,6 +149,11 @@ struct CharacterLibraryView: View {
         .alert("오류", isPresented: .constant(viewModel.error != nil)) {
             Button("확인") {
                 viewModel.error = nil
+            }
+            Button("다시 시도") {
+                Task {
+                    await viewModel.loadCharacters()
+                }
             }
         } message: {
             if let error = viewModel.error {

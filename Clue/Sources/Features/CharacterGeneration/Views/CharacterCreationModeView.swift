@@ -5,7 +5,9 @@ struct CharacterCreationModeView: View {
     @StateObject private var viewModel = CharacterGenerationViewModel()
     @State private var showingCustomGeneration = false
     @State private var isGeneratingRandom = false
-    @State private var showSuccessAlert = false
+    @State private var createdCharacter: Character?
+    @State private var showingCharacterDetail = false
+    @State private var showingSuccessView = false
     
     var body: some View {
         NavigationView {
@@ -37,12 +39,28 @@ struct CharacterCreationModeView: View {
                 await viewModel.loadCategories()
             }
         }
-        .alert("캐릭터 생성 완료", isPresented: $showSuccessAlert) {
-            Button("확인") {
-                dismiss()
+        .fullScreenCover(isPresented: $showingSuccessView) {
+            if let character = createdCharacter {
+                CharacterSuccessView(
+                    character: character,
+                    onViewCharacter: {
+                        showingSuccessView = false
+                        showingCharacterDetail = true
+                    },
+                    onGoHome: {
+                        showingSuccessView = false
+                        dismiss()
+                    }
+                )
             }
-        } message: {
-            Text("무작위 캐릭터가 성공적으로 생성되었습니다!")
+        }
+        .sheet(isPresented: $showingCharacterDetail) {
+            if let character = createdCharacter {
+                CharacterDetailView(character: character) {
+                    // 모달 닫힐 때 홈으로 이동
+                    dismiss()
+                }
+            }
         }
         .alert("오류", isPresented: .constant(viewModel.error != nil)) {
             Button("확인") {
@@ -221,13 +239,12 @@ struct CharacterCreationModeView: View {
         }
         
         // 캐릭터 생성 API 호출
-        let success = await viewModel.createCharacter()
+        if let character = await viewModel.createCharacterAndReturn() {
+            createdCharacter = character
+            showingSuccessView = true
+        }
         
         isGeneratingRandom = false
-        
-        if success {
-            showSuccessAlert = true
-        }
     }
     
     // MARK: - Helper Views

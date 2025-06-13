@@ -9,541 +9,425 @@ import SwiftUI
 
 struct CharacterDetailView: View {
     let character: Character
+    let onCharacterDeleted: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteAlert = false
     
+    init(character: Character, onCharacterDeleted: (() -> Void)? = nil) {
+        self.character = character
+        self.onCharacterDeleted = onCharacterDeleted
+    }
+    
     var body: some View {
-        NavigationView {
-            ZStack {
-                // Background
-                Color(red: 0.98, green: 0.98, blue: 0.99)
-                    .ignoresSafeArea()
+        ScrollView {
+            VStack(spacing: 0) {
+                // 헤더 영역
+                headerSection
                 
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        // Hero Header Section
-                        heroHeaderSection
-                        
-                        // Content sections
-                        VStack(spacing: 24) {
-                            // Character Info Cards
-                            characterInfoSection
-                            
-                            // Narrative Section
-                            if let narrative = character.narrative, !narrative.isEmpty {
-                                narrativeSection(narrative)
-                            }
-                            
-                            // Selected Options Section
-                            if let selectedOptions = character.selectedOptions, !selectedOptions.isEmpty {
-                                selectedOptionsSection(selectedOptions)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 40) // Space for floating card
-                        .padding(.bottom, 40)
-                    }
-                }
-                .ignoresSafeArea(edges: .top)
-            }
-            .navigationBarHidden(true)
-            .overlay(
-                // Custom navigation bar
-                VStack {
-                    HStack {
-                        Button(action: { dismiss() }) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.9))
-                                    .frame(width: 36, height: 36)
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        Menu {
-                            Button("편집", systemImage: "pencil") {
-                                // TODO: 편집 기능
-                            }
-                            
-                            Button("삭제", systemImage: "trash", role: .destructive) {
-                                showingDeleteAlert = true
-                            }
-                        } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.white.opacity(0.9))
-                                    .frame(width: 36, height: 36)
-                                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                                
-                                Image(systemName: "ellipsis")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
+                // 메인 콘텐츠
+                VStack(spacing: 24) {
+                    // 캐릭터 기본 정보
+                    characterBasicInfo
                     
-                    Spacer()
+                    // 상세 정보 카드들
+                    detailCards
                 }
-            )
+                .padding(.horizontal, 20)
+                .padding(.top, 32)
+                .padding(.bottom, 40)
+            }
+        }
+        .background(Color.white)
+        .ignoresSafeArea(.all, edges: .top)
+        .overlay(alignment: .topTrailing) {
+            // 네비게이션 버튼들
+            navigationButtons
         }
         .alert("캐릭터 삭제", isPresented: $showingDeleteAlert) {
             Button("취소", role: .cancel) { }
-            
             Button("삭제", role: .destructive) {
-                Task {
-                    await deleteCharacter()
-                }
+                Task { await deleteCharacter() }
             }
         } message: {
-            Text("'\(character.name)' 캐릭터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")
+            Text("'\(character.name)' 캐릭터를 삭제하시겠습니까?")
         }
     }
     
-    // MARK: - Delete Character
+    // MARK: - Header Section
+    private var headerSection: some View {
+        VStack(spacing: 0) {
+            // 상단 여백 (Safe Area)
+            Rectangle()
+                .fill(Color.clear)
+                .frame(height: 50)
+            
+            // 캐릭터 아바타와 이름
+            VStack(spacing: 20) {
+                // 아바타
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [themeColor.opacity(0.1), themeColor.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 120, height: 120)
+                    
+                    Text(String(character.name.prefix(1)))
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(themeColor)
+                }
+                
+                // 캐릭터 이름
+                Text(character.name)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.black)
+                
+                // 기본 정보 태그들
+                HStack(spacing: 12) {
+                    if let gender = character.gender {
+                        infoTag(text: gender, icon: "person.fill")
+                    }
+                    
+                    if let age = character.age {
+                        infoTag(text: age, icon: "calendar")
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 40)
+        }
+        .background(
+            LinearGradient(
+                colors: [Color.white, Color(red: 0.98, green: 0.98, blue: 1.0)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+    
+    // MARK: - Character Basic Info
+    private var characterBasicInfo: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Text("기본 정보")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                Spacer()
+            }
+            
+            VStack(spacing: 12) {
+                if let appearance = character.appearance, !appearance.isEmpty {
+                    infoRow(title: "외모", content: appearance, icon: "eye")
+                }
+                
+                if let backstory = character.backstory, !backstory.isEmpty {
+                    infoRow(title: "배경", content: backstory, icon: "book.closed")
+                }
+                
+                if let conflict = character.conflict, !conflict.isEmpty {
+                    infoRow(title: "갈등", content: conflict, icon: "exclamationmark.triangle")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Detail Cards
+    private var detailCards: some View {
+        VStack(spacing: 20) {
+            // 서사 카드
+            if let narrative = character.narrative, !narrative.isEmpty {
+                narrativeCard(narrative)
+            }
+            
+            // 선택된 옵션 카드
+            if let selectedOptions = character.selectedOptions, !selectedOptions.isEmpty {
+                selectedOptionsCard(selectedOptions)
+            }
+            
+            // 생성 정보 카드
+            if let createdAt = character.createdAt {
+                creationInfoCard(createdAt)
+            }
+        }
+    }
+    
+    // MARK: - Navigation Buttons
+    private var navigationButtons: some View {
+        HStack(spacing: 12) {
+            // 닫기 버튼
+            Button(action: { dismiss() }) {
+                Circle()
+                    .fill(Color.black.opacity(0.05))
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.black.opacity(0.7))
+                    )
+            }
+            
+            // 메뉴 버튼
+            Menu {
+                Button("삭제", systemImage: "trash", role: .destructive) {
+                    showingDeleteAlert = true
+                }
+            } label: {
+                Circle()
+                    .fill(Color.black.opacity(0.05))
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.black.opacity(0.7))
+                    )
+            }
+        }
+        .padding(.top, 50)
+        .padding(.trailing, 20)
+    }
+    
+    // MARK: - Helper Views
+    private func infoTag(text: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(themeColor)
+            
+            Text(text)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.black.opacity(0.8))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(themeColor.opacity(0.08))
+        )
+    }
+    
+    private func infoRow(title: String, content: String, icon: String) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            // 아이콘
+            Circle()
+                .fill(themeColor.opacity(0.1))
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(themeColor)
+                )
+            
+            // 내용
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.black)
+                
+                Text(content)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.black.opacity(0.7))
+                    .lineSpacing(2)
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 8)
+    }
+    
+    private func narrativeCard(_ narrative: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("캐릭터 서사")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                Spacer()
+            }
+            
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Color.orange.opacity(0.1))
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Image(systemName: "quote.bubble")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.orange)
+                        )
+                    
+                    Text("스토리")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.black)
+                    
+                    Spacer()
+                }
+                
+                Text(narrative)
+                    .font(.system(size: 15, weight: .regular))
+                    .foregroundColor(.black.opacity(0.8))
+                    .lineSpacing(4)
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(red: 0.99, green: 0.99, blue: 1.0))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    )
+            )
+        }
+    }
+    
+    private func selectedOptionsCard(_ selectedOptions: [String: String]) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("선택된 옵션")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                Spacer()
+            }
+            
+            // 2열 그리드로 변경
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 12),
+                GridItem(.flexible(), spacing: 12)
+            ], spacing: 16) {
+                ForEach(Array(selectedOptions.keys.sorted()), id: \.self) { key in
+                    if let value = selectedOptions[key], !value.isEmpty {
+                        optionChip(
+                            category: getCategoryName(for: key),
+                            value: value,
+                            categoryId: key
+                        )
+                    }
+                }
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(red: 0.99, green: 0.99, blue: 1.0))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    )
+            )
+        }
+    }
+    
+    private func optionChip(category: String, value: String, categoryId: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // 카테고리 제목
+            Text(category)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(getCategoryColor(for: categoryId))
+                .textCase(.uppercase)
+            
+            // 선택된 값
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.black)
+                .lineSpacing(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(getCategoryColor(for: categoryId).opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(getCategoryColor(for: categoryId).opacity(0.15), lineWidth: 1)
+                )
+        )
+    }
+    
+    private func creationInfoCard(_ createdAt: Date) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("생성 정보")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.black)
+                Spacer()
+            }
+            
+            HStack(spacing: 16) {
+                Circle()
+                    .fill(Color.green.opacity(0.1))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(.green)
+                    )
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("생성일")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.black.opacity(0.6))
+                    
+                    Text(createdAt, formatter: dateFormatter)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.black)
+                }
+                
+                Spacer()
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(red: 0.99, green: 0.99, blue: 1.0))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    )
+            )
+        }
+    }
+    
+    // MARK: - Helper Methods
     private func deleteCharacter() async {
         guard let characterId = character.id else { return }
         
         do {
             try await CharacterLibraryService.shared.deleteCharacter(id: characterId)
             dismiss()
+            onCharacterDeleted?()
         } catch {
             print("❌ 캐릭터 삭제 실패: \(error)")
-            // TODO: 에러 처리
         }
     }
     
-    // MARK: - Hero Header Section
-    private var heroHeaderSection: some View {
-        ZStack(alignment: .bottom) {
-            // Background gradient with dynamic colors
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: avatarColors + [avatarColors[1].opacity(0.8)]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(height: 280)
-                .overlay(
-                    // Subtle pattern overlay
-                    Rectangle()
-                        .fill(
-                            RadialGradient(
-                                gradient: Gradient(colors: [
-                                    Color.white.opacity(0.1),
-                                    Color.clear
-                                ]),
-                                center: .topTrailing,
-                                startRadius: 50,
-                                endRadius: 200
-                            )
-                        )
-                )
-            
-            // Content
-            VStack(spacing: 20) {
-                Spacer()
-                
-                // Character Avatar
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.15))
-                        .frame(width: 120, height: 120)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white.opacity(0.3), lineWidth: 3)
-                        )
-                        .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 10)
-                    
-                    Image(systemName: "person.fill")
-                        .font(.system(size: 52, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                
-                // Character Name and basic info
-                VStack(spacing: 8) {
-                    Text(character.name)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
-                    
-                    // Quick info badges
-                    HStack(spacing: 12) {
-                        if let gender = character.gender {
-                            infoBadge(text: gender, icon: "person")
-                        }
-                        
-                        if let age = character.age {
-                            infoBadge(text: age, icon: "calendar")
-                        }
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 30)
-            
-            // Floating info card
-            if let createdAt = character.createdAt {
-                HStack {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(avatarColors[0])
-                    
-                    Text("생성일")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.4))
-                    
-                    Spacer()
-                    
-                    Text(createdAt, formatter: dateFormatter)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Color(red: 0.1, green: 0.1, blue: 0.1))
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
-                        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                )
-                .padding(.horizontal, 20)
-                .offset(y: 20)
-            }
-        }
-    }
-    
-    // Info badge helper
-    private func infoBadge(text: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.white)
-            
-            Text(text)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.white)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color.white.opacity(0.2))
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                )
-        )
-    }
-    
-    // Dynamic avatar colors based on character name
-    private var avatarColors: [Color] {
-        let colorSets: [[Color]] = [
-            [Color(red: 0.0, green: 0.4, blue: 1.0), Color(red: 0.2, green: 0.6, blue: 1.0)], // Blue
-            [Color(red: 1.0, green: 0.3, blue: 0.5), Color(red: 1.0, green: 0.5, blue: 0.7)], // Pink
-            [Color(red: 0.2, green: 0.8, blue: 0.4), Color(red: 0.4, green: 0.9, blue: 0.6)], // Green
-            [Color(red: 1.0, green: 0.6, blue: 0.0), Color(red: 1.0, green: 0.7, blue: 0.2)], // Orange
-            [Color(red: 0.6, green: 0.3, blue: 1.0), Color(red: 0.7, green: 0.5, blue: 1.0)], // Purple
-            [Color(red: 0.0, green: 0.7, blue: 0.9), Color(red: 0.2, green: 0.8, blue: 1.0)]  // Cyan
+    private var themeColor: Color {
+        let colors: [Color] = [
+            Color(red: 0.0, green: 0.48, blue: 1.0),    // Blue
+            Color(red: 0.2, green: 0.78, blue: 0.35),   // Green
+            Color(red: 1.0, green: 0.58, blue: 0.0),    // Orange
+            Color(red: 0.55, green: 0.27, blue: 0.95),  // Purple
+            Color(red: 1.0, green: 0.23, blue: 0.19),   // Red
+            Color(red: 0.0, green: 0.78, blue: 0.75)    // Teal
         ]
-        
         let hash = character.name.hash
-        let index = abs(hash) % colorSets.count
-        return colorSets[index]
+        let index = abs(hash) % colors.count
+        return colors[index]
     }
     
-    // MARK: - Character Info Section
-    private var characterInfoSection: some View {
-        VStack(spacing: 16) {
-            // Section header
-            HStack {
-                Text("캐릭터 정보")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-            
-            // Info cards
-            VStack(spacing: 12) {
-                if let appearance = character.appearance, !appearance.isEmpty {
-                    characterInfoCard(title: "외모", content: appearance, icon: "eye", color: avatarColors[0])
-                }
-                
-                if let backstory = character.backstory, !backstory.isEmpty {
-                    characterInfoCard(title: "배경", content: backstory, icon: "book", color: Color(red: 0.6, green: 0.3, blue: 1.0))
-                }
-                
-                if let conflict = character.conflict, !conflict.isEmpty {
-                    characterInfoCard(title: "갈등", content: conflict, icon: "bolt", color: Color(red: 1.0, green: 0.3, blue: 0.5))
-                }
-            }
-        }
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
     }
     
-    // MARK: - Character Info Card
-    private func characterInfoCard(title: String, content: String, icon: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            // Icon
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(color.opacity(0.1))
-                    .frame(width: 44, height: 44)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(color)
-            }
-            
-            // Content
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                
-                Text(content)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Color(red: 0.25, green: 0.25, blue: 0.25))
-                    .lineSpacing(3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            
-            Spacer()
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18)
-                .stroke(color.opacity(0.08), lineWidth: 1)
-        )
-    }
-    
-    // MARK: - Narrative Section
-    private func narrativeSection(_ narrative: String) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Section header
-            HStack {
-                Text("캐릭터 서사")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-            
-            // Narrative card
-            VStack(alignment: .leading, spacing: 16) {
-                // Decorative header
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color(red: 1.0, green: 0.6, blue: 0.0),
-                                        Color(red: 1.0, green: 0.7, blue: 0.2)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "book.pages")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("스토리")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                        
-                        Text("캐릭터의 배경 이야기")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
-                    }
-                    
-                    Spacer()
-                }
-                
-                // Quote-style narrative
-                VStack(alignment: .leading, spacing: 12) {
-                    // Opening quote mark
-                    //                    HStack {
-                    //                        Text(""")
-                    //                            .font(.system(size: 32, weight: .bold))
-                    //                            .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.3))
-                    //                        
-                    //                        Spacer()
-                    //                    }
-                    
-                    Text(narrative)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color(red: 0.15, green: 0.15, blue: 0.15))
-                        .lineSpacing(6)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 8)
-                    
-                    // Closing quote mark
-                    //                    HStack {
-                    //                        Spacer()
-                    //                        
-                    //                        Text(""")
-                    //                            .font(.system(size: 32, weight: .bold))
-                    //                            .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.3))
-                    //                    }
-                }
-            }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.white,
-                                Color(red: 1.0, green: 0.98, blue: 0.95)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.08), lineWidth: 1)
-            )
-        }
-    }
-    
-    // MARK: - Selected Options Section
-    private func selectedOptionsSection(_ selectedOptions: [String: String]) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Section header
-            HStack {
-                Text("생성 옵션")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-            
-            // Options card
-            VStack(alignment: .leading, spacing: 20) {
-                // Header with icon
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color(red: 0.2, green: 0.8, blue: 0.4),
-                                        Color(red: 0.4, green: 0.9, blue: 0.6)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "checkmark.circle")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("선택된 옵션")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.05))
-                        
-                        Text("캐릭터 생성 시 선택한 설정")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(Color(red: 0.5, green: 0.5, blue: 0.5))
-                    }
-                    
-                    Spacer()
-                }
-                
-                // Options grid
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 12),
-                    GridItem(.flexible(), spacing: 12)
-                ], spacing: 16) {
-                    ForEach(Array(selectedOptions.keys.sorted()), id: \.self) { key in
-                        if let value = selectedOptions[key], !value.isEmpty {
-                            optionChip(category: getCategoryName(for: key), value: value)
-                        }
-                    }
-                }
-            }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
-                    .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color(red: 0.2, green: 0.8, blue: 0.4).opacity(0.08), lineWidth: 1)
-            )
-        }
-    }
-    
-    // MARK: - Option Chip
-    private func optionChip(category: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(category)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(Color(red: 0.2, green: 0.8, blue: 0.4))
-                .textCase(.uppercase)
-                .tracking(0.5)
-            
-            Text(value)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(red: 0.2, green: 0.8, blue: 0.4).opacity(0.05))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(red: 0.2, green: 0.8, blue: 0.4).opacity(0.1), lineWidth: 1)
-                )
-        )
-    }
-    
-    // MARK: - Helper Methods
     private func getCategoryName(for categoryId: String) -> String {
         let categoryNames: [String: String] = [
             "1": "세계관·장르",
-            "2": "역할·위치",
+            "2": "역할·위치", 
             "3": "이름·신상",
             "4": "출신·배경",
             "5": "외모 묘사",
@@ -559,37 +443,32 @@ struct CharacterDetailView: View {
         return categoryNames[categoryId] ?? "카테고리 \(categoryId)"
     }
     
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter
+    private func getCategoryColor(for categoryId: String) -> Color {
+        let colors: [Color] = [
+            Color(red: 0.0, green: 0.48, blue: 1.0),    // Blue
+            Color(red: 0.2, green: 0.78, blue: 0.35),   // Green  
+            Color(red: 1.0, green: 0.58, blue: 0.0),    // Orange
+            Color(red: 0.55, green: 0.27, blue: 0.95),  // Purple
+            Color(red: 1.0, green: 0.23, blue: 0.19),   // Red
+            Color(red: 0.0, green: 0.78, blue: 0.75),   // Teal
+            Color(red: 1.0, green: 0.41, blue: 0.71),   // Pink
+            Color(red: 0.35, green: 0.34, blue: 0.84),  // Indigo
+            Color(red: 0.96, green: 0.76, blue: 0.05),  // Yellow
+            Color(red: 0.63, green: 0.51, blue: 0.41),  // Brown
+            Color(red: 0.56, green: 0.56, blue: 0.58),  // Gray
+            Color(red: 0.30, green: 0.69, blue: 0.31)   // Light Green
+        ]
+        
+        if let id = Int(categoryId), id >= 1 && id <= 12 {
+            return colors[id - 1]
+        }
+        return themeColor
     }
 }
 
 #Preview {
     CharacterDetailView(
-        character: Character(
-            id: 1,
-            userId: "test-user",
-            name: "엘리사 드라크리아",
-            selectedOptions: [
-                "1": "다크 판타지",
-                "2": "암살자",
-                "4": "왕실 기사 가문"
-            ],
-            gender: "여성",
-            age: "27세",
-            appearance: "짙은 은발과 차가운 회색 눈동자, 검은 망토를 두른 그림자 같은 자태",
-            backstory: "왕실 기사였던 아버지를 잃고 떠돌이 암살자로 자라났다",
-            conflict: "복수심과 정의 사이에서 갈등한다",
-            narrative: "북부의 얼음 마을, 창백한 달빛 아래 은발이 부드럽게 빛난다. 복수와 정의 사이에서 흔들리는 마음을 다잡으며, 그녀는 운명의 길을 향해 한 걸음씩 나아간다.",
-            description: nil,
-            imageUrl: nil,
-            metadata: nil,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
+        character: Character(name: "테스트 캐릭터"),
+        onCharacterDeleted: {}
     )
-} 
+}

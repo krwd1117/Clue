@@ -55,6 +55,9 @@ class CharacterLibraryViewModel: ObservableObject {
             characters.removeAll { $0.id == characterId }
             
             characterToDelete = nil
+            showingDeleteAlert = false
+            
+            print("✅ 캐릭터 삭제 완료 및 목록 업데이트: \(character.name)")
         } catch let appError as AppError {
             error = appError
         } catch {
