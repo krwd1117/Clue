@@ -1,246 +1,125 @@
-//
-//  LoginView.swift
-//  Clue
-//
-//  Created by 김정완 on 6/12/25.
-//
-
 import SwiftUI
+import Supabase
 
-// MARK: - 로그인 뷰
 struct LoginView: View {
-    @EnvironmentObject var appRouter: AppRouter
     @StateObject private var viewModel = LoginViewModel()
-    @State private var isAnimating = false
+    @State private var contentOpacity: Double = 0
+    
+    let appState: AppState
     
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // 깔끔한 흰색 배경
-                Color.white
-                    .ignoresSafeArea()
-                
-                VStack(spacing: 50) {
-                    Spacer()
-                    
-                    // 앱 로고 및 제목
-                    VStack(spacing: 30) {
+        ZStack {
+            DesignSystem.Colors.background
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: DesignSystem.Spacing.xxxl) {
+                    // Header section
+                    VStack(spacing: DesignSystem.Spacing.xl) {
+                        // App icon
                         ZStack {
-                            // 배경 원형 효과
-                            Circle()
-                                .fill(Color.blue.opacity(0.1))
-                                .frame(width: 120, height: 120)
-                                .scaleEffect(isAnimating ? 1.05 : 1.0)
-                                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: isAnimating)
+                            RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.lg)
+                                .fill(DesignSystem.Colors.primary)
+                                .frame(width: 64, height: 64)
                             
-                            // 메인 아이콘
-                            Image(systemName: "person.crop.artframe")
-                                .font(.system(size: 60, weight: .light))
-                                .foregroundColor(.blue)
-                                .shadow(color: .black.opacity(0.05), radius: 5)
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundColor(.white)
                         }
                         
-                        VStack(spacing: 12) {
-                            Text("Clue")
-                                .font(.system(size: 42, weight: .bold, design: .rounded))
-                                .foregroundColor(.black)
-                            
-                            Text("당신만의 캐릭터를 창조하세요")
-                                .font(.system(size: 18, weight: .medium, design: .rounded))
-                                .foregroundColor(.gray)
+                        VStack(spacing: DesignSystem.Spacing.sm) {
+                            Text("Clue에 오신 것을 환영해요")
+                                .font(DesignSystem.Typography.title)
+                                .foregroundColor(DesignSystem.Colors.textPrimary)
                                 .multilineTextAlignment(.center)
                             
-                            Text("✨ 상상력을 현실로 ✨")
-                                .font(.system(size: 14, weight: .regular, design: .rounded))
-                                .foregroundColor(.blue)
+                            Text("간편하게 로그인하고\n캐릭터 생성을 시작해보세요")
+                                .font(DesignSystem.Typography.body)
+                                .foregroundColor(DesignSystem.Colors.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(4)
                         }
                     }
+                    .padding(.top, DesignSystem.Spacing.xxxl)
                     
-                    Spacer()
-                    
-                    // OAuth 로그인 버튼들
-                    VStack(spacing: 16) {
-                        // Google 로그인
-                        CreativeOAuthButton(
-                            provider: .google,
-                            isLoading: viewModel.isLoading
-                        ) {
-                            viewModel.signInWithGoogle()
-                        }
-                        
-                        // Apple 로그인
-                        CreativeOAuthButton(
-                            provider: .apple,
-                            isLoading: viewModel.isLoading
-                        ) {
-                            viewModel.signInWithApple()
-                        }
-                    }
-                    .padding(.horizontal, 30)
-                    
-                    // 로딩 인디케이터
-                    if viewModel.isLoading {
-                        VStack(spacing: 12) {
-                            ZStack {
-                                Circle()
-                                    .stroke(Color.gray.opacity(0.3), lineWidth: 3)
-                                    .frame(width: 40, height: 40)
-                                
-                                Circle()
-                                    .trim(from: 0, to: 0.7)
-                                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                                    .frame(width: 40, height: 40)
-                                    .rotationEffect(.degrees(isAnimating ? 360 : 0))
-                                    .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: isAnimating)
+                    // Login buttons section
+                    VStack(spacing: DesignSystem.Spacing.lg) {
+                        VStack(spacing: DesignSystem.Spacing.md) {
+                            PrimaryButton(
+                                title: "Apple로 계속하기",
+                                icon: "apple.logo",
+                                style: .primary,
+                                isLoading: viewModel.isAppleLoading
+                            ) {
+                                Task {
+                                    await viewModel.signInWithApple()
+                                    if viewModel.error == nil {
+                                        appState.signInCompleted()
+                                    }
+                                }
                             }
                             
-                            Text("로그인 중...")
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
-                                .foregroundColor(.gray)
+                            PrimaryButton(
+                                title: "Google로 계속하기",
+                                icon: "globe",
+                                style: .secondary,
+                                isLoading: viewModel.isGoogleLoading
+                            ) {
+                                Task {
+                                    await viewModel.signInWithGoogle()
+                                    if viewModel.error == nil {
+                                        appState.signInCompleted()
+                                    }
+                                }
+                            }
                         }
                     }
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
                     
-                    Spacer()
+                    Spacer(minLength: DesignSystem.Spacing.xxxl)
                     
-                    // 약관 동의
-                    VStack(spacing: 12) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "info.circle")
-                                .font(.system(size: 12))
-                                .foregroundColor(.blue)
+                    // Terms and privacy
+                    VStack(spacing: DesignSystem.Spacing.sm) {
+                        Text("계속 진행하면 다음에 동의하는 것으로 간주됩니다")
+                            .font(DesignSystem.Typography.small)
+                            .foregroundColor(DesignSystem.Colors.textTertiary)
+                            .multilineTextAlignment(.center)
+                        
+                        HStack(spacing: DesignSystem.Spacing.sm) {
+                            Button("이용약관") {
+                                // TODO: Show terms
+                            }
+                            .font(DesignSystem.Typography.small)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .underline()
                             
-                            Text("로그인하면 서비스 약관에 동의하게 됩니다")
-                                .font(.system(size: 12, weight: .regular, design: .rounded))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.center)
+                            Text("·")
+                                .font(DesignSystem.Typography.small)
+                                .foregroundColor(DesignSystem.Colors.textTertiary)
+                            
+                            Button("개인정보처리방침") {
+                                // TODO: Show privacy policy
+                            }
+                            .font(DesignSystem.Typography.small)
+                            .foregroundColor(DesignSystem.Colors.textSecondary)
+                            .underline()
                         }
                     }
-                    .padding(.horizontal, 30)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, DesignSystem.Spacing.lg)
+                    .padding(.bottom, DesignSystem.Spacing.xl)
                 }
             }
-        }
-        .alert("로그인 오류", isPresented: $viewModel.showingAlert) {
-            Button("확인") { }
-        } message: {
-//            Text(viewModel.alertMessage)
+            .opacity(contentOpacity)
         }
         .onAppear {
-            viewModel.setAppRouter(appRouter)
-            withAnimation {
-                isAnimating = true
+            withAnimation(.easeOut(duration: 0.6)) {
+                contentOpacity = 1.0
             }
-//            viewModel.setup()
         }
-    }
-}
-
-// MARK: - OAuth 제공자 열거형
-enum OAuthProvider {
-    case google
-    case apple
-    
-    var displayName: String {
-        switch self {
-        case .google: return "Google"
-        case .apple: return "Apple"
-        }
-    }
-    
-    var iconName: String {
-        switch self {
-        case .google: return "globe"
-        case .apple: return "applelogo"
-        }
-    }
-    
-    var backgroundColor: Color {
-        switch self {
-        case .google: return .white
-        case .apple: return .black
-        }
-    }
-    
-    var foregroundColor: Color {
-        switch self {
-        case .google: return .black
-        case .apple: return .white
-        }
-    }
-    
-    var accentColor: Color {
-        switch self {
-        case .google: return .blue
-        case .apple: return .gray
-        }
-    }
-}
-
-// MARK: - OAuth 버튼
-struct CreativeOAuthButton: View {
-    let provider: OAuthProvider
-    let isLoading: Bool
-    let action: () -> Void
-    @State private var isPressed = false
-    
-    var body: some View {
-        Button(action: {
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isPressed = false
-                }
-            }
-            action()
-        }) {
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(provider.accentColor.opacity(0.1))
-                        .frame(width: 35, height: 35)
-                    
-                    Image(systemName: provider.iconName)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(provider.foregroundColor)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(provider.displayName)로 시작하기")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundColor(provider.foregroundColor)
-                    
-                    Text("간편하게 로그인하세요")
-                        .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundColor(provider.foregroundColor.opacity(0.7))
-                }
-                
-                Spacer()
-                
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(provider.foregroundColor.opacity(0.6))
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(provider.backgroundColor)
-                    .shadow(color: .black.opacity(0.05), radius: isPressed ? 2 : 8, x: 0, y: isPressed ? 1 : 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-                    )
-            )
-        }
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .disabled(isLoading)
-        .opacity(isLoading ? 0.7 : 1.0)
+        .errorAlert(error: $viewModel.error)
     }
 }
 
 #Preview {
-    LoginView()
-        .environmentObject(AppRouter())
+    LoginView(appState: AppState())
 } 

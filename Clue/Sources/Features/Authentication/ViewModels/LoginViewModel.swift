@@ -1,62 +1,50 @@
-//
-//  LoginViewModel.swift
-//  Clue
-//
-//  Created by 김정완 on 6/12/25.
-//
-
-import Foundation
 import SwiftUI
+import Supabase
 
 @MainActor
 class LoginViewModel: ObservableObject {
-    @Published var errorMessage: String?
-    @Published var showingAlert = false
+    @Published var error: AppError?
+    @Published var isLoading = false
+    @Published var isAppleLoading = false
+    @Published var isGoogleLoading = false
     
-    private let authService = AuthService.shared
-    private var appRouter: AppRouter?
+    private let authService: AuthServiceProtocol
     
-    var isLoading: Bool {
-        authService.isLoading
+    init(authService: AuthServiceProtocol = AuthService.shared) {
+        self.authService = authService
     }
     
-    // AppRouter 설정 메서드
-    func setAppRouter(_ appRouter: AppRouter) {
-        self.appRouter = appRouter
-    }
-    
-    // MARK: - OAuth 로그인 메서드들
-    
-    func signInWithGoogle() {
-        Task {
-            do {
-                try await authService.signInWithGoogle()
-                print("✅ LoginViewModel: Google login successful")
-                // 로그인 성공 시 AppRouter를 통해 메인 화면으로 이동
-                appRouter?.showMain()
-            } catch {
-                handleError(error)
-            }
+    func signInWithApple() async {
+        isAppleLoading = true
+        isLoading = true
+        
+        do {
+            let session = try await authService.signInWith(provider: .apple)
+            print("Successfully signed in with Apple: \(session)")
+        } catch let appError as AppError {
+            error = appError
+        } catch {
+            self.error = AppError.authentication(error)
         }
+        
+        isAppleLoading = false
+        isLoading = false
     }
     
-    func signInWithApple() {
-        Task {
-            do {
-                try await authService.signInWithApple()
-                print("✅ LoginViewModel: Apple login successful")
-                // 로그인 성공 시 AppRouter를 통해 메인 화면으로 이동
-                appRouter?.showMain()
-            } catch {
-                handleError(error)
-            }
+    func signInWithGoogle() async {
+        isGoogleLoading = true
+        isLoading = true
+        
+        do {
+            let session = try await authService.signInWith(provider: .google)
+            print("Successfully signed in with Google: \(session)")
+        } catch let appError as AppError {
+            error = appError
+        } catch {
+            self.error = AppError.authentication(error)
         }
+        
+        isGoogleLoading = false
+        isLoading = false
     }
-    
-    // MARK: - 에러 처리
-    
-    private func handleError(_ error: Error) {
-        errorMessage = error.localizedDescription
-        showingAlert = true
-    }
-} 
+}
