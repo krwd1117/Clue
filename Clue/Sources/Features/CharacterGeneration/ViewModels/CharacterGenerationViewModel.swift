@@ -13,6 +13,13 @@ class CharacterGenerationViewModel: ObservableObject {
     @Published var isCreatingCharacter = false
     @Published var error: AppError?
     
+    // 기타 옵션 관련 상태
+    @Published var customOptionTexts: [Int: String] = [:] // 카테고리 ID별 커스텀 텍스트
+    @Published var showingCustomInput: [Int: Bool] = [:] // 카테고리 ID별 커스텀 입력 표시 여부
+    
+    // 미리보기 펼침 상태
+    @Published var isPreviewExpanded = false
+    
     // 각 카테고리별 옵션들을 저장
     private var optionsByCategory: [Int: [CharacterOption]] = [:]
     private let service: CharacterGenerationServiceProtocol
@@ -66,7 +73,110 @@ class CharacterGenerationViewModel: ObservableObject {
     func selectOption(_ option: CharacterOption, for category: CharacterCategory) {
         guard let index = categorySelections.firstIndex(where: { $0.category.id == category.id }) else { return }
         
+        // 이미 선택된 옵션을 다시 누르면 선택 해제
+        if let currentSelection = categorySelections[index].selectedOption,
+           currentSelection.id == option.id {
+            deselectOption(for: category)
+            return
+        }
+        
         categorySelections[index] = CategorySelection(category: category, selectedOption: option)
+        
+        // 기타 옵션이 아닌 경우 커스텀 입력 숨기기
+        if !isOtherOption(option) {
+            showingCustomInput[category.id] = false
+            customOptionTexts[category.id] = ""
+        }
+    }
+    
+    func deselectOption(for category: CharacterCategory) {
+        guard let index = categorySelections.firstIndex(where: { $0.category.id == category.id }) else { return }
+        
+        categorySelections[index] = CategorySelection(category: category, selectedOption: nil)
+        
+        // 커스텀 입력 상태도 초기화
+        showingCustomInput[category.id] = false
+        customOptionTexts[category.id] = ""
+    }
+    
+    func selectOtherOption(for category: CharacterCategory) {
+        // 이미 기타 옵션이 선택된 경우 선택 해제
+        if isShowingCustomInput(for: category) {
+            deselectOption(for: category)
+            return
+        }
+        
+        showingCustomInput[category.id] = true
+        // 기타 옵션을 위한 임시 옵션 생성 (실제로는 서버에서 처리)
+        let otherOption = CharacterOption(
+            id: -1, // 임시 ID
+            categoryId: category.id,
+            value: "기타",
+            description: "사용자 정의 옵션",
+            metadata: [:],
+            isDefault: false,
+            displayOrder: 999,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        
+        // 직접 categorySelections 업데이트 (selectOption 호출 시 중복 체크 방지)
+        guard let index = categorySelections.firstIndex(where: { $0.category.id == category.id }) else { return }
+        categorySelections[index] = CategorySelection(category: category, selectedOption: otherOption)
+    }
+    
+    func selectRandomOption(for category: CharacterCategory) {
+        // 이미 무작위 옵션이 선택된 경우 선택 해제
+        if isRandomSelected(for: category) {
+            deselectOption(for: category)
+            return
+        }
+        
+        // 무작위 옵션을 위한 임시 옵션 생성
+        let randomOption = CharacterOption(
+            id: -2, // 무작위용 임시 ID
+            categoryId: category.id,
+            value: "무작위",
+            description: "랜덤 선택 옵션",
+            metadata: [:],
+            isDefault: false,
+            displayOrder: -1,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        
+        // 직접 categorySelections 업데이트 (selectOption 호출 시 중복 체크 방지)
+        guard let index = categorySelections.firstIndex(where: { $0.category.id == category.id }) else { return }
+        categorySelections[index] = CategorySelection(category: category, selectedOption: randomOption)
+    }
+    
+    func isRandomSelected(for category: CharacterCategory) -> Bool {
+        guard let selectedOption = getSelectedOption(for: category) else { return false }
+        return selectedOption.id == -2 || selectedOption.value == "무작위"
+    }
+    
+    func updateCustomOptionText(_ text: String, for category: CharacterCategory) {
+        customOptionTexts[category.id] = text
+    }
+    
+    func isOtherOption(_ option: CharacterOption) -> Bool {
+        return option.id == -1 || option.value == "기타"
+    }
+    
+    func isRandomOption(_ option: CharacterOption) -> Bool {
+        return option.id == -2 || option.value == "무작위"
+    }
+    
+    func isShowingCustomInput(for category: CharacterCategory) -> Bool {
+        return showingCustomInput[category.id] ?? false
+    }
+    
+    func getCustomOptionText(for category: CharacterCategory) -> String {
+        return customOptionTexts[category.id] ?? ""
+    }
+    
+    func togglePreview() {
+        isPreviewExpanded.toggle()
     }
     
     func getOptions(for category: CharacterCategory) -> [CharacterOption] {
@@ -90,8 +200,7 @@ class CharacterGenerationViewModel: ObservableObject {
     }
     
     func createCharacter() async -> Bool {
-        guard !characterName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              canCreateCharacter else {
+        guard canCreateCharacter else {
             return false
         }
         
@@ -99,21 +208,36 @@ class CharacterGenerationViewModel: ObservableObject {
         error = nil
         
         do {
-            // 각 카테고리별 선택된 옵션을 매핑
-            var selectedOptionsMap: [Int: Int] = [:]
+            // 각 카테고리별 선택된 옵션의 값(문자열)을 매핑
+            var selectedOptionsMap: [String: String] = [:]
+            
             for selection in categorySelections {
                 if let selectedOption = selection.selectedOption {
-                    selectedOptionsMap[selection.category.id] = selectedOption.id
+                    let categoryIdString = String(selection.category.id)
+                    
+                    if isOtherOption(selectedOption) {
+                        // 커스텀 옵션인 경우 사용자 입력 텍스트 저장 (빈 값도 허용)
+                        let customText = getCustomOptionText(for: selection.category).trimmingCharacters(in: .whitespacesAndNewlines)
+                        selectedOptionsMap[categoryIdString] = customText.isEmpty ? "" : customText
+                    } else {
+                        // 일반 옵션인 경우 옵션의 값(value) 저장
+                        selectedOptionsMap[categoryIdString] = selectedOption.value
+                    }
                 }
             }
             
+            // 이름 처리: 빈 값이거나 "무작위"인 경우 ChatGPT가 생성하도록 빈 문자열 전송
+            let finalName = characterName.trimmingCharacters(in: .whitespacesAndNewlines)
+            let nameToSend = finalName.isEmpty || finalName.lowercased() == "무작위" ? "" : finalName
+            
             let request = CharacterCreateRequest(
-                name: characterName.trimmingCharacters(in: .whitespacesAndNewlines),
+                name: nameToSend,
                 selectedOptions: selectedOptionsMap,
-                description: characterDescription.isEmpty ? nil : characterDescription
+                description: nil
             )
             
-            _ = try await service.createCharacter(request)
+            let character = try await service.createCharacter(request)
+            
             return true
         } catch let appError as AppError {
             error = appError
@@ -126,10 +250,13 @@ class CharacterGenerationViewModel: ObservableObject {
     }
     
     var canCreateCharacter: Bool {
-        !characterName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !categorySelections.isEmpty &&
-        categorySelections.allSatisfy({ $0.isComplete }) &&
-        !isCreatingCharacter
+        guard !categorySelections.isEmpty,
+              !isCreatingCharacter else {
+            return false
+        }
+        
+        // 모든 카테고리가 완료되었는지 확인 (기타 옵션의 경우 텍스트 필드는 선택사항)
+        return categorySelections.allSatisfy({ $0.isComplete })
     }
     
     var currentCategory: CharacterCategory? {

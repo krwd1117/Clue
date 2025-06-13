@@ -36,7 +36,7 @@ struct TossLoadingView: View {
         TossCard(padding: DesignSystem.Spacing.xl, cornerRadius: 20) {
             VStack(spacing: DesignSystem.Spacing.lg) {
                 loadingIndicator
-                textContent
+                TextContent(title: title, subtitle: subtitle)
             }
         }
     }
@@ -48,7 +48,7 @@ struct TossLoadingView: View {
             TossCard(padding: DesignSystem.Spacing.xl, cornerRadius: 20) {
                 VStack(spacing: DesignSystem.Spacing.lg) {
                     loadingIndicator
-                    textContent
+                    TextContent(title: title, subtitle: subtitle)
                 }
             }
             .padding(.horizontal, DesignSystem.Spacing.lg)
@@ -73,6 +73,14 @@ struct TossLoadingView: View {
     }
     
     private var loadingIndicator: some View {
+        LoadingSpinner()
+    }
+}
+
+struct LoadingSpinner: View {
+    @State private var isRotating = false
+    
+    var body: some View {
         ZStack {
             Circle()
                 .stroke(DesignSystem.Colors.primary.opacity(0.2), lineWidth: 4)
@@ -92,12 +100,26 @@ struct TossLoadingView: View {
                     style: StrokeStyle(lineWidth: 4, lineCap: .round)
                 )
                 .frame(width: 60, height: 60)
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1).repeatForever(autoreverses: false), value: UUID())
+                .rotationEffect(.degrees(isRotating ? 360 : 0))
+                .onAppear {
+                    withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                        isRotating = true
+                    }
+                }
         }
     }
+}
+
+fileprivate struct TextContent: View {
+    var title: String
+    var subtitle: String?
     
-    private var textContent: some View {
+    init(title: String, subtitle: String? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+    }
+    
+    var body: some View {
         VStack(spacing: DesignSystem.Spacing.sm) {
             Text(title)
                 .font(.system(size: 18, weight: .semibold))

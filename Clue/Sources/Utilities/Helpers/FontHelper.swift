@@ -111,14 +111,14 @@ enum FontHelper {
         
         // Static Font 시도
         if isFontAvailable(fontName) {
-            print("✅ Using Static Font: \(fontName)")
+//            print("✅ Using Static Font: \(fontName)")
             return Font.custom(fontName, size: size)
         }
         
         // 대체 이름 시도 (공백 포함 버전)
         let alternateFontName = fontName.replacingOccurrences(of: "NotoSansKR-", with: "Noto Sans KR ")
         if isFontAvailable(alternateFontName) {
-            print("✅ Using Static Font (alternate): \(alternateFontName)")
+//            print("✅ Using Static Font (alternate): \(alternateFontName)")
             return Font.custom(alternateFontName, size: size)
         }
         

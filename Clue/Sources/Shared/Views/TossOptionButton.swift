@@ -13,6 +13,7 @@ struct TossOptionButton: View {
         case checkbox
         case card
         case minimal
+        case compact
     }
     
     init(
@@ -48,6 +49,8 @@ struct TossOptionButton: View {
             cardContent
         case .minimal:
             minimalContent
+        case .compact:
+            compactContent
         }
     }
     
@@ -88,73 +91,124 @@ struct TossOptionButton: View {
     }
     
     private var cardContent: some View {
-        HStack(spacing: DesignSystem.Spacing.md) {
-            selectionIndicator
+        VStack(spacing: 0) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.textSecondary)
+                    .padding(.bottom, DesignSystem.Spacing.sm)
+            }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(spacing: 2) {
                 Text(title)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
                 
                 if let subtitle = subtitle {
                     Text(subtitle)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
                 }
             }
-            
-            Spacer()
-            
-            if isSelected {
-                Image(systemName: "arrow.right.circle.fill")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(DesignSystem.Colors.primary.opacity(0.6))
-            }
         }
-        .padding(DesignSystem.Spacing.lg)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, DesignSystem.Spacing.sm)
+        .padding(.vertical, DesignSystem.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(isSelected ? DesignSystem.Colors.primary.opacity(0.05) : DesignSystem.Colors.cardBackground)
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? DesignSystem.Colors.primary.opacity(0.08) : DesignSystem.Colors.cardBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 12)
                         .stroke(
-                            isSelected ? DesignSystem.Colors.primary.opacity(0.3) : DesignSystem.Colors.borderLight,
-                            lineWidth: isSelected ? 2 : 1
+                            isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.border.opacity(0.3),
+                            lineWidth: isSelected ? 1.5 : 0.5
                         )
                 )
-        )
-        .scaleEffect(isSelected ? 1.02 : 1.0)
-        .shadow(
-            color: isSelected ? DesignSystem.Colors.primary.opacity(0.2) : DesignSystem.Shadow.light,
-            radius: isSelected ? 8 : 4,
-            x: 0,
-            y: isSelected ? 4 : 2
         )
     }
     
     private var minimalContent: some View {
-        HStack(spacing: DesignSystem.Spacing.sm) {
-            Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(isSelected ? .white : DesignSystem.Colors.textPrimary)
-            
+        VStack(spacing: DesignSystem.Spacing.xs) {
             if let icon = icon {
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(isSelected ? .white : DesignSystem.Colors.textSecondary)
             }
+            
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(isSelected ? .white : DesignSystem.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                }
+            }
         }
-        .padding(.horizontal, DesignSystem.Spacing.md)
-        .padding(.vertical, DesignSystem.Spacing.sm)
-        .background(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.sectionBackground)
+        .frame(maxWidth: .infinity)
+        .frame(height: 60) // 고정 높이
+        .padding(.horizontal, DesignSystem.Spacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.sectionBackground)
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(
-                    isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.border,
-                    lineWidth: 1
+                    isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.border.opacity(0.3),
+                    lineWidth: isSelected ? 0 : 0.5
                 )
         )
-        .cornerRadius(8)
+    }
+    
+    private var compactContent: some View {
+        VStack(spacing: DesignSystem.Spacing.xs) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.textSecondary)
+            }
+            
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(DesignSystem.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: subtitle != nil ? 60 : 50) // description이 있으면 높이 증가
+        .padding(.horizontal, DesignSystem.Spacing.xs)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isSelected ? DesignSystem.Colors.primary.opacity(0.1) : DesignSystem.Colors.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                    isSelected ? DesignSystem.Colors.primary : DesignSystem.Colors.border.opacity(0.2),
+                    lineWidth: isSelected ? 1 : 0.5
+                )
+        )
     }
     
     private var selectionIndicator: some View {
