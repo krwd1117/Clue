@@ -4,7 +4,7 @@ globs:
 alwaysApply: true
 ---
 ## UI
-Toss 스타일의 흰 배경에 깔끔한 UI
+- Toss 스타일의 흰 배경에 깔끔한 UI
 
 ## 폴더 구조 및 라우팅 규칙
  MyStoryApp/

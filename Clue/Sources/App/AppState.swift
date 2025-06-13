@@ -15,6 +15,13 @@ class AppState: ObservableObject {
     
     init(authService: AuthServiceProtocol = AuthService.shared) {
         self.authService = authService
+        
+        for family in UIFont.familyNames {
+            print(family)
+            for name in UIFont.fontNames(forFamilyName: family) {
+                print("  →", name)
+            }
+        }
     }
     
     func checkSession() async {

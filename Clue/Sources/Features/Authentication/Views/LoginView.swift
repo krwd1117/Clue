@@ -45,10 +45,11 @@ struct LoginView: View {
                     // Login buttons section
                     VStack(spacing: DesignSystem.Spacing.lg) {
                         VStack(spacing: DesignSystem.Spacing.md) {
-                            PrimaryButton(
+                            TossButton(
                                 title: "Apple로 계속하기",
                                 icon: "apple.logo",
                                 style: .primary,
+                                size: .large,
                                 isLoading: viewModel.isAppleLoading
                             ) {
                                 Task {
@@ -59,10 +60,11 @@ struct LoginView: View {
                                 }
                             }
                             
-                            PrimaryButton(
+                            TossButton(
                                 title: "Google로 계속하기",
                                 icon: "globe",
                                 style: .secondary,
+                                size: .large,
                                 isLoading: viewModel.isGoogleLoading
                             ) {
                                 Task {

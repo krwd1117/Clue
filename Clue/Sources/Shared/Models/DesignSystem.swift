@@ -29,16 +29,26 @@ enum DesignSystem {
         static let borderLight = Color(red: 0.95, green: 0.95, blue: 0.95)
     }
     
-    // MARK: - Typography (Toss Style)
+    // MARK: - Typography (Toss Style with NotoSansKR)
     enum Typography {
-        static let largeTitle = Font.system(size: 32, weight: .bold, design: .default)
-        static let title = Font.system(size: 24, weight: .bold, design: .default)
-        static let headline = Font.system(size: 18, weight: .semibold, design: .default)
-        static let body = Font.system(size: 16, weight: .regular, design: .default)
-        static let bodyBold = Font.system(size: 16, weight: .semibold, design: .default)
-        static let caption = Font.system(size: 14, weight: .regular, design: .default)
-        static let captionBold = Font.system(size: 14, weight: .semibold, design: .default)
-        static let small = Font.system(size: 12, weight: .regular, design: .default)
+        static let largeTitle = Font.notoSansKR(.bold, size: 32)
+        static let title = Font.notoSansKR(.bold, size: 24)
+        static let headline = Font.notoSansKR(.semibold, size: 18)
+        static let body = Font.notoSansKR(.regular, size: 16)
+        static let bodyBold = Font.notoSansKR(.semibold, size: 16)
+        static let caption = Font.notoSansKR(.regular, size: 14)
+        static let captionBold = Font.notoSansKR(.semibold, size: 14)
+        static let small = Font.notoSansKR(.regular, size: 12)
+        
+        // System fallback fonts (for debugging or special cases)
+        static let largeTitleSystem = Font.system(size: 32, weight: .bold, design: .default)
+        static let titleSystem = Font.system(size: 24, weight: .bold, design: .default)
+        static let headlineSystem = Font.system(size: 18, weight: .semibold, design: .default)
+        static let bodySystem = Font.system(size: 16, weight: .regular, design: .default)
+        static let bodyBoldSystem = Font.system(size: 16, weight: .semibold, design: .default)
+        static let captionSystem = Font.system(size: 14, weight: .regular, design: .default)
+        static let captionBoldSystem = Font.system(size: 14, weight: .semibold, design: .default)
+        static let smallSystem = Font.system(size: 12, weight: .regular, design: .default)
     }
     
     // MARK: - Spacing (Toss Style)

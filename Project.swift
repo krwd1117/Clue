@@ -29,6 +29,17 @@ let project = Project(
                         "UIColorName": "",
                         "UIImageName": "",
                     ],
+                    "UIAppFonts": [
+                        "NotoSansKR-Thin.ttf",
+                        "NotoSansKR-ExtraLight.ttf",
+                        "NotoSansKR-Light.ttf",
+                        "NotoSansKR-Regular.ttf",
+                        "NotoSansKR-Medium.ttf",
+                        "NotoSansKR-SemiBold.ttf",
+                        "NotoSansKR-Bold.ttf",
+                        "NotoSansKR-ExtraBold.ttf",
+                        "NotoSansKR-Black.ttf"
+                    ],
                     "CFBundleURLTypes": [
                         [
                             "CFBundleURLName": "com.krwd.clue",
