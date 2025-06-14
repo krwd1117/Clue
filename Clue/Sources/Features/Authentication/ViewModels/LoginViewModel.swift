@@ -14,37 +14,30 @@ class LoginViewModel: ObservableObject {
         self.authService = authService
     }
     
-    func signInWithApple() async {
-        isAppleLoading = true
+    func signInWithOAuth(provier: Provider) async {
+        if provier == .apple {
+            isAppleLoading = true
+        } else if provier == .google {
+            isGoogleLoading = true
+        }
+        
         isLoading = true
         
         do {
-            let session = try await authService.signInWith(provider: .apple)
-            print("Successfully signed in with Apple: \(session)")
+            let session = try await authService.signInWith(provider: provier)
+            print("Successfully signed in: \(session)")
         } catch let appError as AppError {
             error = appError
         } catch {
             self.error = AppError.authentication(error)
         }
         
-        isAppleLoading = false
-        isLoading = false
-    }
-    
-    func signInWithGoogle() async {
-        isGoogleLoading = true
-        isLoading = true
-        
-        do {
-            let session = try await authService.signInWith(provider: .google)
-            print("Successfully signed in with Google: \(session)")
-        } catch let appError as AppError {
-            error = appError
-        } catch {
-            self.error = AppError.authentication(error)
+        if provier == .apple {
+            isAppleLoading = false
+        } else if provier == .google {
+            isGoogleLoading = false
         }
         
-        isGoogleLoading = false
         isLoading = false
     }
 }
