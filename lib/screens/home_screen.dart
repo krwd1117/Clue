@@ -1,4 +1,5 @@
 
+import 'package:clue/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,8 +11,20 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Clue'),
       ),
-      body: const Center(
-        child: Text('Welcome to Clue!'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('내가 만든 캐릭터 목록'),
+            // TODO: 캐릭터 목록 표시
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChatScreen()));
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
