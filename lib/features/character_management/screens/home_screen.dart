@@ -1,5 +1,5 @@
 
-import 'package:clue/screens/chat_screen.dart';
+import 'package:clue/features/character_creation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
