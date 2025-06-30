@@ -52,33 +52,28 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'CLUE',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple.shade700,
-                ),
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
               ),
               const SizedBox(height: 16),
               Text(
                 'AI와 함께 만드는 캐릭터 이야기',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
               ),
               const Spacer(flex: 3),
               ElevatedButton.icon(
                 onPressed: _googleSignIn,
-                icon: const Icon(
-                  Icons.g_mobiledata,
-                ), // Replace with a proper Google icon if you have one
+                icon: const Icon(Icons.g_mobiledata),
                 label: const Text('Google로 계속하기'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
                   backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    side: BorderSide(color: Colors.grey.shade300),
-                  ),
+                  foregroundColor: Colors.black,
+                  side: BorderSide(color: Colors.grey.shade300),
                 ),
               ),
               const SizedBox(height: 12),
@@ -87,15 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: const Icon(Icons.apple),
                 label: const Text('Apple로 계속하기'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
                   backgroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  foregroundColor: Colors.white,
                 ),
               ),
-              const Spacer(flex: 1),
+              const SizedBox(height: 24),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
@@ -104,9 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: const Text(
                   '로그인 없이 둘러보기',
-                  style: TextStyle(color: Colors.grey),
                 ),
               ),
+              const Spacer(flex: 1),
             ],
           ),
         ),

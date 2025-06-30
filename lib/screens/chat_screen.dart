@@ -107,8 +107,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('새 캐릭터 만들기'),
-        elevation: 1,
-        shadowColor: Colors.grey.shade200,
       ),
       body: Column(
         children: [
@@ -134,15 +132,15 @@ class _ChatScreenState extends State<ChatScreen> {
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
-          color: isUser ? Colors.purple.shade600 : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20.0),
+          color: isUser ? Theme.of(context).colorScheme.primary.withOpacity(0.9) : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(18.0),
         ),
         child: Text(
           message.text,
-          style: TextStyle(color: isUser ? Colors.white : Colors.black87),
+          style: TextStyle(color: isUser ? Colors.white : Colors.black87, fontSize: 15),
         ),
       ),
     );
@@ -163,14 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: _generateProfile,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple.shade600,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            minimumSize: const Size(double.infinity, 50),
-          ),
-          child: const Text('프로필 생성하기', style: TextStyle(fontSize: 16)),
+          child: const Text('프로필 생성하기'),
         ),
       );
     }
@@ -178,6 +169,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Row(
@@ -188,13 +180,12 @@ class _ChatScreenState extends State<ChatScreen> {
               onSubmitted: (_) => _sendMessage(),
               decoration: const InputDecoration(
                 hintText: '답변을 입력하세요...',
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
               ),
             ),
           ),
+          const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.send, color: Colors.purple.shade600),
+            icon: Icon(Icons.send, color: Theme.of(context).colorScheme.primary),
             onPressed: _sendMessage,
           ),
         ],

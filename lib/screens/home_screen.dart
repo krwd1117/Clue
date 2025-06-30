@@ -72,11 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           final characters = snapshot.data!;
           if (characters.isEmpty) {
-            return const Center(
-              child: Text(
-                '아직 생성된 캐릭터가 없습니다.\n아래 + 버튼을 눌러 첫 캐릭터를 만들어보세요!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_add_alt_1, size: 60, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    '아직 생성된 캐릭터가 없습니다.\n아래 + 버튼을 눌러 첫 캐릭터를 만들어보세요!',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                  ),
+                ],
               ),
             );
           }
@@ -85,16 +94,36 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: characters.length,
             itemBuilder: (context, index) {
               final character = characters[index];
-              return ListTile(
-                title: Text(character['name'] ?? '이름 없음'),
-                subtitle: Text(
-                  character['profile'] ?? '프로필 정보가 없습니다.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.grey.shade200),
                 ),
-                onTap: () {
-                  // TODO: Navigate to character detail screen
-                },
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  title: Text(
+                    character['name'] ?? '이름 없음',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      character['profile'] ?? '프로필 정보가 없습니다.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                    ),
+                  ),
+                  onTap: () {
+                    // TODO: Navigate to character detail screen
+                  },
+                ),
               );
             },
           );
@@ -110,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         },
         child: const Icon(Icons.add),
-        backgroundColor: Colors.purple.shade600,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
