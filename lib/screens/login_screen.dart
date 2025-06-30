@@ -15,12 +15,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        context: context,
       );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google login failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Google login failed: $error')));
     }
   }
 
@@ -28,12 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.apple,
-        context: context,
       );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Apple login failed: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Apple login failed: $error')));
     }
   }
 
@@ -61,18 +59,18 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'AI와 함께 만드는 캐릭터 이야기',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
               ),
               const Spacer(flex: 3),
               ElevatedButton.icon(
                 onPressed: _googleSignIn,
-                icon: const Icon(Icons.g_mobiledata), // Replace with a proper Google icon if you have one
+                icon: const Icon(
+                  Icons.g_mobiledata,
+                ), // Replace with a proper Google icon if you have one
                 label: const Text('Google로 계속하기'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black, backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  backgroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -86,7 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 icon: const Icon(Icons.apple),
                 label: const Text('Apple로 계속하기'),
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
