@@ -17,16 +17,34 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    print('[HomeScreen] initState 호출됨');
     _charactersFuture = _fetchCharacters();
   }
 
   Future<List<Map<String, dynamic>>> _fetchCharacters() async {
-    final response = await _supabase
-        .from('characters')
-        .select()
-        .order('created_at', ascending: false);
+    print('[_fetchCharacters] 함수 시작');
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        print('[_fetchCharacters] 인증된 사용자 없음. 빈 목록 반환.');
+        return []; // Return empty list if no user is logged in
+      }
+      print('[_fetchCharacters] 사용자 ID: ${user.id}');
 
-    return List<Map<String, dynamic>>.from(response);
+      final response = await _supabase
+          .from('characters')
+          .select()
+          .order('created_at', ascending: false);
+
+      print('[_fetchCharacters] Supabase 응답: $response');
+      final characters = response as List<Map<String, dynamic>>;
+      print('[_fetchCharacters] ${characters.length}개의 캐릭터 가져옴.');
+      print('[_fetchCharacters] 함수 성공적으로 완료.');
+      return characters;
+    } catch (e) {
+      print('[_fetchCharacters] 에러 발생: $e');
+      rethrow; // 에러를 다시 던져 FutureBuilder에서 처리하도록 함
+    }
   }
 
   @override

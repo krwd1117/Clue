@@ -1,4 +1,5 @@
 import 'package:clue/screens/home_screen.dart';
+import 'package:clue/screens/blank_screen.dart';
 import 'package:clue/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,24 +44,26 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
-    _redirect();
+    _redirectInitialAuth();
+    supabase.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.signedIn) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      } else if (event == AuthChangeEvent.signedOut) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+      }
+    });
   }
 
-  Future<void> _redirect() async {
+  Future<void> _redirectInitialAuth() async {
     await Future.delayed(Duration.zero);
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     final session = supabase.auth.currentSession;
     if (session == null) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     } else {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 

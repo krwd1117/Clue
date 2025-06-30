@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:clue/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
+        redirectTo: 'clue://oauth/callback',
       );
     } catch (error) {
       ScaffoldMessenger.of(
@@ -27,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.apple,
+        redirectTo: 'clue://oauth/callback',
       );
     } catch (error) {
       ScaffoldMessenger.of(
@@ -93,6 +96,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const Spacer(flex: 1),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  );
+                },
+                child: const Text(
+                  '로그인 없이 둘러보기',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
             ],
           ),
         ),
