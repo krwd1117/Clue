@@ -1,4 +1,4 @@
-import 'package:clue/features/character_management/screens/home_screen.dart';
+import 'package:clue/features/common/screens/main_navigation_screen.dart';
 import 'package:clue/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -111,7 +111,7 @@ class _AuthGateState extends State<AuthGate> {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedIn) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
         );
       } else if (event == AuthChangeEvent.signedOut) {
         Navigator.of(context).pushReplacement(
@@ -131,9 +131,9 @@ class _AuthGateState extends State<AuthGate> {
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     } else {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+      );
     }
   }
 
