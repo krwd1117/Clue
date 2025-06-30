@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final Map<String, dynamic>? existingCharacter;
+
+  const ChatScreen({super.key, this.existingCharacter});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -29,6 +31,10 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _fetchCategoriesAndStartChat();
+    if (widget.existingCharacter != null) {
+      _postBotMessage(
+          '${widget.existingCharacter!['name']}와(과) 연계된 캐릭터를 생성합니다. 어떤 관계인가요?');
+    }
   }
 
   Future<void> _fetchCategoriesAndStartChat() async {
@@ -104,6 +110,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final profile = await _openAIService.createCharacterProfile(
         _characterData,
+        existingCharacter: widget.existingCharacter,
       );
 
       final user = Supabase.instance.client.auth.currentUser;
@@ -127,7 +134,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
-        Navigator.pop(context, true); // 홈 화면에 변경 알림
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CharacterDetailScreen(character: {
+              'name': _characterData['name'],
+              'gender': _characterData['gender'],
+              'age': _characterData['age'],
+              'profile': profile,
+              'character_data': _characterData,
+            }),
+          ),
+        );
       }
     } catch (e) {
       _messages.add(Message('프로필 생성 또는 저장에 실패했습니다: $e', MessageSender.bot));

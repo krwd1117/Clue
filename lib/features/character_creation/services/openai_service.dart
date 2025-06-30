@@ -6,11 +6,15 @@ class OpenAIService {
 
   OpenAIService(this._supabase);
 
-  Future<String> createCharacterProfile(Map<String, dynamic> characterData) async {
+  Future<String> createCharacterProfile(Map<String, dynamic> characterData, {Map<String, dynamic>? existingCharacter}) async {
     try {
+      final body = {
+        'characterData': characterData,
+        'existingCharacter': existingCharacter,
+      };
       final response = await _supabase.functions.invoke(
         'create-character', // Edge Function 이름
-        body: characterData,
+        body: body,
       );
 
       if (response.status != 200) {

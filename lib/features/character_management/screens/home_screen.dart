@@ -121,8 +121,55 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   onTap: () {
-                    // TODO: Navigate to character detail screen
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CharacterDetailScreen(character: character),
+                      ),
+                    );
                   },
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                    onPressed: () async {
+                      final bool? confirmDelete = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('캐릭터 삭제'),
+                            content: const Text('정말로 이 캐릭터를 삭제하시겠습니까?'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('취소'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('삭제'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      if (confirmDelete == true) {
+                        try {
+                          await _supabase
+                              .from('characters')
+                              .delete()
+                              .eq('id', character['id']);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('캐릭터가 삭제되었습니다.')),
+                          );
+                          setState(() {
+                            _charactersFuture = _fetchCharacters();
+                          });
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('캐릭터 삭제 실패: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
                 ),
               );
             },
