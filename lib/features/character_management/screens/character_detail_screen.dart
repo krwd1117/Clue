@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:clue/features/character_creation/screens/chat_screen.dart';
 
 class CharacterDetailScreen extends StatelessWidget {
   final Map<String, dynamic> character;

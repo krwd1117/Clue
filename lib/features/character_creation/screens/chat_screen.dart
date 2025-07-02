@@ -1,4 +1,5 @@
 import 'package:clue/features/character_creation/models/message.dart';
+import 'package:clue/features/character_management/screens/character_detail_screen.dart';
 import 'package:clue/features/character_creation/models/character_data.dart';
 import 'package:clue/features/character_creation/services/openai_service.dart';
 import 'package:flutter/material.dart';

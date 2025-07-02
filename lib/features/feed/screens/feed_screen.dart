@@ -54,11 +54,28 @@ class _FeedScreenState extends State<FeedScreen> {
           }
           final characters = snapshot.data!;
           if (characters.isEmpty) {
-            return const Center(
-              child: Text(
-                '아직 공유된 캐릭터가 없습니다.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.sentiment_dissatisfied, size: 50, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    '아직 공유된 캐릭터가 없어요.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '새로운 캐릭터를 만들고 공유해보세요!',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
+                  ),
+                ],
               ),
             );
           }
@@ -75,10 +92,9 @@ class _FeedScreenState extends State<FeedScreen> {
             itemBuilder: (context, index) {
               final character = characters[index];
               return Card(
-                elevation: 0,
+                elevation: 1, // Add a subtle elevation
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(16), // More rounded corners
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
@@ -86,42 +102,59 @@ class _FeedScreenState extends State<FeedScreen> {
                   children: [
                     Expanded(
                       child: Container(
-                        color: Colors.grey.shade100, // Placeholder for image
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                              Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                            ],
+                          ),
+                        ),
                         child: Center(
-                          child: Icon(Icons.person, size: 60, color: Colors.grey.shade400),
-                        ), // Replace with actual image later
+                          child: Icon(
+                            Icons.auto_awesome, // A more generic, appealing icon
+                            size: 60,
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                          ),
+                        ),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(12.0), // Increased padding
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             character['name'] ?? '이름 없음',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith( // Larger title
                                   fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6), // Increased spacing
                           Text(
                             character['profile'] ?? '프로필 정보가 없습니다.',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey.shade600,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith( // Medium body text
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'by ${character['user_email'] ?? '알 수 없음'}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey.shade500,
-                                ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          const SizedBox(height: 10), // Increased spacing
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              'by ${character['user_email'] ?? '알 수 없음'}',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith( // Smaller label text
+                                    color: Theme.of(context).colorScheme.outline,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
